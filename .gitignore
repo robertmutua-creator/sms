@@ -1,0 +1,18 @@
+# Dependencies
+/vendor/
+
+# Environment Configuration
+.env
+
+# Logs and Errors
+/errors.log
+*.log
+
+# Runtime storage and uploads (keep folder structure if needed via .gitkeep)
+/storage/*
+!/storage/.gitkeep
+
+# IDE / OS specific
+.DS_Store
+.idea/
+.vscode/

@@ -1,0 +1,21 @@
+{
+    "name": "sms/cbe-assessment",
+    "description": "CBE Senior School Assessment Management System",
+    "type": "project",
+    "license": "MIT",
+    "autoload": {
+        "psr-4": {
+            "App\\": "app/"
+        }
+    },
+    "authors": [
+        {
+            "name": "Robert",
+            "email": "robertmutua95@gmail.com"
+        }
+    ],
+    "minimum-stability": "stable",
+    "require": {
+        "vlucas/phpdotenv": "^5.8"
+    }
+}
