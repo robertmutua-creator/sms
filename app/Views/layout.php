@@ -28,8 +28,11 @@
 
         <div class="main">
             <h3><?= isset($moduleTitle) ? $moduleTitle : '--' ?></h3>
-            <?php require_once __DIR__ . '/alert.php'; ?>
-            <?= isset($content) ? require_once __DIR__ . '/../Views/' . $content . '.php' : 'No content set' ?>
+            <?php if (isset($content)): ?>
+                <?php require_once __DIR__ . '/../Views/' . $content . '.php'; ?>
+            <?php else: ?>
+                No content set
+            <?php endif; ?>
         </div>
     </main>
     <footer>

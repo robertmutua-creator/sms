@@ -15,4 +15,11 @@ class HomeController extends Controller
     {
         require_once __DIR__ . '/../Views/home.php';
     }
+
+    public function login(): void
+    {
+        if ($_SERVER['REQUEST_METHOD'] === 'GET') {
+            $this->view('auth/login', ['title' => 'SMS - Login', 'moduleTitle' => 'Authentication']);
+        }
+    }
 }

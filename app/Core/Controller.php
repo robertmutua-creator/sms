@@ -13,8 +13,9 @@ abstract class Controller
 
     protected function view(string $path, array $data = []): void
     {
+        $data['content'] = $path;
         extract($data);
-        require_once __DIR__ . "/../app/Views/{$path}.php";
+        require_once __DIR__ . "/../Views/layout.php";
     }
 
     protected function flash(string $type, ?string $message = null): void
