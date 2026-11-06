@@ -58,6 +58,34 @@ abstract class Model
         }
     }
 
+    public function findAll(array $criteria = []): array
+    {
+        $where = [];
+        $params = [];
+
+        if ($this->schoolId !== null) {
+            $where[] = "school_id = :school_id_scope";
+            $params['school_id_scope'] = $this->schoolId;
+        }
+
+        foreach ($criteria as $key => $value) {
+            $where[] = "{$key} = :criteria_{$key}";
+            $params["criteria_{$key}"] = $value;
+        }
+
+        $whereString = !empty($where) ? "WHERE " . implode(' AND ', $where) : "";
+        $sql = "SELECT * FROM {$this->table} {$whereString}";
+
+        try {
+            $stmt = $this->db->prepare($sql);
+            $stmt->execute($params);
+            return $stmt->fetchAll(PDO::FETCH_ASSOC);
+        } catch (PDOException $e) {
+            error_log("Error [findAll]: " . $e->getMessage());
+            return [];
+        }
+    }
+
     public function update(int $id, array $data): bool
     {
         $fields = [];
