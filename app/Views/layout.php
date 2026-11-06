@@ -14,7 +14,14 @@
             <h2><?= isset($title) ? $title : 'SMS' ?></h2>
         </div>
         <div class="action">
-            <a href="<?= isset($user) ? '/logout' : '/login' ?>"><?= isset($user) ? 'Logout' : 'Login' ?></a>
+            <?php if (isset($user)): ?>
+                <form action="/logout" method="post">
+                    <input type="hidden" name="token" value="<?= htmlspecialchars($csrfToken ?? '', ENT_QUOTES, 'UTF-8') ?>">
+                    <button type="submit">Logout</button>
+                </form>
+            <?php else: ?>
+                <a href="/login">Login</a>
+            <?php endif; ?>
         </div>
     </header>
     <main>

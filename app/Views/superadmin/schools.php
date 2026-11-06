@@ -41,6 +41,8 @@ $isEditing = !empty($school['id']);
                             <td>
                                 <a class="btn-sm btn-edit" href="/superadmin/schools/edit/<?= (int) $listedSchool['id'] ?>">Edit</a>
                                 <form id="delete-school-<?= (int) $listedSchool['id'] ?>" action="/superadmin/schools/delete/<?= (int) $listedSchool['id'] ?>" method="post" onsubmit="return confirm('Delete this school?');" hidden>
+                                    <input type="hidden" name="token" value="<?= htmlspecialchars($token ?? '', ENT_QUOTES, 'UTF-8') ?>">
+                                    <input type="hidden" name="_method" value="DELETE">
                                 </form>
                                 <button class="btn-sm btn-delete" type="submit" form="delete-school-<?= (int) $listedSchool['id'] ?>">Delete</button>
                             </td>
@@ -55,7 +57,10 @@ $isEditing = !empty($school['id']);
 <section>
     <h4><?= $isEditing ? 'Edit School' : 'Add School' ?></h4>
     <form action="<?= $isEditing ? '/superadmin/schools/update/' . (int) $school['id'] : '/superadmin/schools/save' ?>" method="post" enctype="multipart/form-data">
-
+        <input type="hidden" name="token" value="<?= htmlspecialchars($token ?? '', ENT_QUOTES, 'UTF-8') ?>">
+        <?php if ($isEditing): ?>
+            <input type="hidden" name="_method" value="PUT">
+        <?php endif; ?>
         <div class="form-group">
             <label for="code">School code</label>
             <input type="text" id="code" name="code" value="<?= htmlspecialchars($school['code'] ?? '', ENT_QUOTES, 'UTF-8') ?>" required>

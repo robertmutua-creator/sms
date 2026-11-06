@@ -17,6 +17,7 @@ abstract class Controller
             $data['user'] = $_SESSION['user'] ?? null;
             $data['title'] = $_SESSION['user']['name'];
             $data['links'] = $this->getRoleLinks();
+            $data['csrfToken'] = $this->setToken();
         }
         $data['content'] = $path;
         extract($data);

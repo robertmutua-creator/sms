@@ -41,6 +41,7 @@ $isEditing = !empty($admin['id']);
                                 <a class="btn-sm btn-edit" href="/superadmin/admins/edit/<?= (int) $listedAdmin['id'] ?>">Edit</a>
                                 <form id="delete-admin-<?= (int) $listedAdmin['id'] ?>" action="/superadmin/admins/delete/<?= (int) $listedAdmin['id'] ?>" method="post" onsubmit="return confirm('Delete this admin?');" hidden>
                                     <input type="hidden" name="token" value="<?= htmlspecialchars($token ?? '', ENT_QUOTES, 'UTF-8') ?>">
+                                    <input type="hidden" name="_method" value="DELETE">
                                 </form>
                                 <button class="btn-sm btn-delete" type="submit" form="delete-admin-<?= (int) $listedAdmin['id'] ?>">Delete</button>
                             </td>
@@ -56,6 +57,9 @@ $isEditing = !empty($admin['id']);
     <h4><?= $isEditing ? 'Edit School Admin' : 'Add School Admin' ?></h4>
     <form action="<?= $isEditing ? '/superadmin/admins/update/' . (int) $admin['id'] : '/superadmin/admins/save' ?>" method="post" enctype="multipart/form-data">
         <input type="hidden" name="token" value="<?= htmlspecialchars($token ?? '', ENT_QUOTES, 'UTF-8') ?>">
+        <?php if ($isEditing): ?>
+            <input type="hidden" name="_method" value="PUT">
+        <?php endif; ?>
         <div class="form-group">
             <label for="full_name">Full name</label>
             <input type="text" id="full_name" name="full_name" value="<?= htmlspecialchars($admin['name'] ?? '', ENT_QUOTES, 'UTF-8') ?>" required>

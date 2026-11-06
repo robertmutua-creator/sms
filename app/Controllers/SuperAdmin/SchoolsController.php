@@ -4,7 +4,6 @@ namespace App\Controllers\SuperAdmin;
 
 use App\Core\Controller;
 use App\Models\Schools;
-use Throwable;
 
 class SchoolsController extends Controller
 {
@@ -41,72 +40,113 @@ class SchoolsController extends Controller
 
         $data['school'] = $school;
         $data['schools'] = $this->schools->findAll();
+        $data['token'] = $this->setToken();
         $data['moduleTitle'] = $school ? 'Edit School: ' . $school['name'] : 'Manage Schools';
         $this->view('superadmin/schools', $data);
     }
 
-    public function save(?int $id = null): void
+    public function save(?string $id = null): void
     {
+        if (!$this->confirmToken($_POST['token'] ?? null)) {
+            $this->flash('error', 'Invalid token received.');
+            $this->redirect($this->basePath);
+        }
+
+        $schoolId = null;
+        $existingSchool = null;
+        if ($id !== null) {
+            $schoolId = filter_var($id, FILTER_VALIDATE_INT);
+            if ($schoolId === false || $schoolId < 1) {
+                $this->flash('error', 'Invalid school ID.');
+                $this->redirect($this->basePath);
+            }
+
+            $existingSchool = $this->schools->find($schoolId);
+            if ($existingSchool === null) {
+                $this->flash('error', 'School not found.');
+                $this->redirect($this->basePath);
+            }
+        }
+
         $code = trim($_POST['code'] ?? '');
         $name = trim($_POST['name'] ?? '');
         $username = trim($_POST['username'] ?? '');
         $address = trim($_POST['address'] ?? '');
         $status = $_POST['status'] ?? 'Active';
+        $logoFile = $_FILES['logo'] ?? null;
 
-        // Check if a file was actually uploaded without errors
-        $hasNewLogo = isset($_FILES['logo']) && $_FILES['logo']['error'] === UPLOAD_ERR_OK;
-
-        // 1. Validate required text fields
-        if (empty($code) || empty($name) || empty($username) || empty($address) || empty($status)) {
+        if ($code === '' || $name === '' || $username === '' || $address === '' || !in_array($status, ['Active', 'Inactive'], true)) {
             $this->flash('error', 'All fields are required.');
             $this->redirect($this->basePath);
-            return; // CRITICAL: Stop execution!
         }
 
-        // 2. Validate logo is provided for NEW records
-        if (empty($id) && !$hasNewLogo) {
-            $this->flash('error', 'School Logo is required for new schools.');
+        $hasLogoUpload = $logoFile !== null && $logoFile['error'] !== UPLOAD_ERR_NO_FILE;
+        if (!$schoolId && !$hasLogoUpload) {
+            $this->flash('error', 'A school logo is required for new schools.');
             $this->redirect($this->basePath);
-            return; // CRITICAL: Stop execution!
         }
 
         $schoolData = [
             'code' => $this->textFormat($code, 'upper'),
             'name' => $this->textFormat($name, 'title'),
             'username' => $this->textFormat($username, 'lower'),
-            'address' => $address, // Kept normal or use textFormat if preferred
+            'address' => $this->textFormat($address, 'upper'),
             'status' => $status,
         ];
 
-        // 3. Handle Logo Upload & Replacement logic
-        if ($hasNewLogo) {
-            $newLogoPath = $this->handleFileUpload($_FILES['logo'], 'logos');
+        $logoPath = null;
+        if ($hasLogoUpload) {
+            $imageInfo = $logoFile['error'] === UPLOAD_ERR_OK
+                ? getimagesize($logoFile['tmp_name'])
+                : false;
+            $imageTypes = [
+                'image/jpeg' => 'jpg',
+                'image/png' => 'png',
+                'image/gif' => 'gif',
+                'image/webp' => 'webp',
+            ];
+            $extension = $imageInfo !== false ? ($imageTypes[$imageInfo['mime']] ?? null) : null;
 
-            if (!empty($id)) {
-                // Fetch existing school to delete old logo file if it exists
-                $currentSchool = $this->schools->find($id);
-                if (!empty($currentSchool['logo_path'])) {
-                    $this->deleteFile($currentSchool['logo_path']);
-                }
+            if ($extension === null || $logoFile['size'] > 5 * 1024 * 1024) {
+                $this->flash('error', 'Upload a valid JPEG, PNG, GIF, or WEBP logo no larger than 5 MB.');
+                $this->redirect($this->basePath);
             }
 
-            $schoolData['logo_path'] = $newLogoPath;
+            $logoFile['name'] = 'logo.' . $extension;
+            $logoPath = $this->handleFileUpload($logoFile, 'logos');
+            if ($logoPath === null) {
+                $this->flash('error', 'The school logo could not be uploaded.');
+                $this->redirect($this->basePath);
+            }
+            $schoolData['logo_path'] = $logoPath;
         }
 
-        // 4. Database Persistence
-        if (!empty($id)) {
-            $this->schools->update($id, $schoolData);
-            $this->flash('success', 'School updated successfully.');
-        } else {
-            $this->schools->create($schoolData);
-            $this->flash('success', 'School created successfully.');
+        $saved = $schoolId
+            ? $this->schools->update($schoolId, $schoolData)
+            : $this->schools->create($schoolData);
+        if (!$saved) {
+            if ($logoPath !== null) {
+                $this->deleteFile($logoPath);
+            }
+            $this->flash('error', 'Unable to save the school. Check that the code and username are not already in use.');
+            $this->redirect($this->basePath);
         }
 
+        if ($schoolId && $logoPath !== null && !empty($existingSchool['logo_path'])) {
+            $this->deleteFile($existingSchool['logo_path']);
+        }
+
+        $this->flash('success', $schoolId ? 'School updated successfully.' : 'School created successfully.');
         $this->redirect($this->basePath);
     }
 
     public function destroy(string $id): void
     {
+        if (!$this->confirmToken($_POST['token'] ?? null)) {
+            $this->flash('error', 'Invalid token received.');
+            $this->redirect($this->basePath);
+        }
+
         $schoolId = filter_var($id, FILTER_VALIDATE_INT);
         if ($schoolId === false || $schoolId < 1) {
             $this->flash('error', 'Invalid school ID.');
@@ -114,14 +154,20 @@ class SchoolsController extends Controller
         }
 
         $school = $this->schools->find($schoolId);
-        if ($school) {
-            if (!empty($school['logo_path'])) {
-                $this->deleteFile($school['logo_path']);
-            }
-
-            $this->schools->delete($schoolId);
-            $this->flash('success', 'School succesfully deleted.');
+        if (!$school) {
+            $this->flash('error', 'School not found.');
+            $this->redirect($this->basePath);
         }
+        if (!$this->schools->delete($schoolId)) {
+            $this->flash('error', 'Unable to delete the school.');
+            $this->redirect($this->basePath);
+        }
+
+        if (!empty($school['logo_path'])) {
+            $this->deleteFile($school['logo_path']);
+        }
+
+        $this->flash('success', 'School successfully deleted.');
         $this->redirect($this->basePath);
     }
 }

@@ -38,11 +38,11 @@ class DashboardController extends Controller
                 break;
             case 'Teacher':
                 echo "Welcome Teacher";
-                echo "<a href='/logout'>Logout</a>";
+                echo '<form method="post" action="/logout"><input type="hidden" name="token" value="' . htmlspecialchars($this->setToken(), ENT_QUOTES, 'UTF-8') . '"><button type="submit">Logout</button></form>';
                 break;
             case 'Student':
                 echo "Welcome Student";
-                echo "<a href='/logout'>Logout</a>";
+                echo '<form method="post" action="/logout"><input type="hidden" name="token" value="' . htmlspecialchars($this->setToken(), ENT_QUOTES, 'UTF-8') . '"><button type="submit">Logout</button></form>';
                 break;
 
             default:

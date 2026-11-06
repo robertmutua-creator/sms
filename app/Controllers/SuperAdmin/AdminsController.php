@@ -51,22 +51,23 @@ class AdminsController extends Controller
         $this->view('superadmin/admins', $data);
     }
 
-    public function save(?int $id = null): void
+    public function save(?string $id = null): void
     {
         if (!$this->confirmToken($_POST['token'] ?? null)) {
             $this->flash('error', 'Invalid token received.');
             $this->redirect($this->basePath);
         }
 
-        if ($id !== null && $id < 1) {
+        $adminId = $id === null ? null : filter_var($id, FILTER_VALIDATE_INT);
+        if ($adminId === false || ($adminId !== null && $adminId < 1)) {
             $this->flash('error', 'Invalid admin ID.');
             $this->redirect($this->basePath);
         }
 
-        $isEditing = $id !== null;
+        $isEditing = $adminId !== null;
         $existingAdmin = null;
         if ($isEditing) {
-            $existingAdmin = $this->users->find($id);
+            $existingAdmin = $this->users->find($adminId);
             if (!$existingAdmin || $existingAdmin['role'] !== 'SchoolAdmin') {
                 $this->flash('error', 'Admin not found.');
                 $this->redirect($this->basePath);
@@ -139,7 +140,7 @@ class AdminsController extends Controller
         }
 
         $saved = $isEditing
-            ? $this->users->update($id, $adminData)
+            ? $this->users->update($adminId, $adminData)
             : $this->users->create($adminData);
         if (!$saved) {
             if ($profilePhotoPath !== null) {

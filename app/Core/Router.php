@@ -16,17 +16,48 @@ class Router
         self::$routes['POST'][$path] = $handler;
     }
 
+    public static function put(string $path, array $handler): void
+    {
+        self::$routes['PUT'][$path] = $handler;
+    }
+
+    public static function patch(string $path, array $handler): void
+    {
+        self::$routes['PATCH'][$path] = $handler;
+    }
+
+    public static function delete(string $path, array $handler): void
+    {
+        self::$routes['DELETE'][$path] = $handler;
+    }
+
     public static function dispatch(): void
     {
-        $method = $_SERVER['REQUEST_METHOD'];
-        $uri = parse_url($_SERVER['REQUEST_URI'], PHP_URL_PATH);
-
-        if (isset(self::$routes[$method][$uri])) {
-            [$controller, $action] = self::$routes[$method][$uri];
-            if (class_exists($controller) && method_exists($controller, $action)) {
-                (new $controller())->$action();
+        $method = strtoupper($_SERVER['REQUEST_METHOD'] ?? 'GET');
+        if ($method === 'POST' && isset($_POST['_method'])) {
+            $override = $_POST['_method'];
+            if (!is_string($override) || !in_array(strtoupper($override), ['PUT', 'PATCH', 'DELETE'], true)) {
+                http_response_code(400);
+                echo "400 Bad Request";
                 return;
             }
+            $method = strtoupper($override);
+        }
+
+        $contentType = strtolower(trim(explode(';', $_SERVER['CONTENT_TYPE'] ?? '', 2)[0]));
+        if ($method !== 'POST' && in_array($method, ['PUT', 'PATCH', 'DELETE'], true)
+            && $contentType === 'application/x-www-form-urlencoded') {
+            $body = file_get_contents('php://input');
+            if ($body !== false) {
+                parse_str($body, $_POST);
+            }
+        }
+
+        $uri = parse_url($_SERVER['REQUEST_URI'], PHP_URL_PATH);
+        if (!is_string($uri)) {
+            http_response_code(400);
+            echo "400 Bad Request";
+            return;
         }
 
         foreach (self::$routes[$method] ?? [] as $path => [$controller, $action]) {

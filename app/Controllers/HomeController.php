@@ -58,6 +58,11 @@ class HomeController extends Controller
 
     public function logout(): void
     {
+        if (!$this->confirmToken($_POST['token'] ?? null)) {
+            $this->flash('error', 'Invalid token received.');
+            $this->redirect('/dashboard');
+        }
+
         // Unset all session variables
         $_SESSION = [];
 
