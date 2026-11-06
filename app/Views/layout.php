@@ -19,11 +19,17 @@
     </header>
     <main>
         <?php if (isset($user) && isset($links)): ?>
-            <div class="sidebar">
-                <?php foreach ($links as $link): ?>
-                    <a href="<?= htmlspecialchars($link['url']) ?>"><?= htmlspecialchars($link['label']) ?></a>
-                <?php endforeach; ?>
-            </div>
+            <nav class="sidebar-navigation" aria-label="Main navigation">
+                <button class="sidebar-toggle" type="button" aria-expanded="false" aria-controls="sidebar">
+                    <span class="hamburger-icon" aria-hidden="true"><span></span><span></span><span></span></span>
+                    <span>Menu</span>
+                </button>
+                <div class="sidebar" id="sidebar">
+                    <?php foreach ($links as $link): ?>
+                        <a href="<?= htmlspecialchars($link['url']) ?>"><?= htmlspecialchars($link['label']) ?></a>
+                    <?php endforeach; ?>
+                </div>
+            </nav>
         <?php endif; ?>
 
         <div class="main">
@@ -39,7 +45,20 @@
         </div>
     </main>
     <footer>
+        <p>&copy; <?= date('Y') ?> SMS &mdash; CBE Senior School Assessment Management System</p>
     </footer>
+    <script>
+        const sidebarToggle = document.querySelector('.sidebar-toggle');
+        const sidebar = document.querySelector('#sidebar');
+
+        if (sidebarToggle && sidebar) {
+            sidebarToggle.addEventListener('click', () => {
+                const isExpanded = sidebarToggle.getAttribute('aria-expanded') === 'true';
+                sidebarToggle.setAttribute('aria-expanded', String(!isExpanded));
+                sidebar.classList.toggle('is-open', !isExpanded);
+            });
+        }
+    </script>
 </body>
 
 </html>

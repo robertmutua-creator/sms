@@ -3,6 +3,7 @@
 namespace App\Controllers;
 
 use App\Core\Controller;
+use App\Models\Schools;
 use App\Models\Users;
 
 class DashboardController extends Controller
@@ -24,6 +25,7 @@ class DashboardController extends Controller
             case 'SuperAdmin':
                 $data['moduleTitle'] = 'Dashboard';
                 $data['usersCount'] = (new Users())->count();
+                $data['schoolsCount'] = (new Schools())->count();
                 $this->view('superadmin/index', $data);
                 break;
             case 'SchoolAdmin':
