@@ -15,6 +15,7 @@ abstract class Controller
     {
         if ($this->isLoggedIn()) {
             $data['user'] = $_SESSION['user'] ?? null;
+            $data['title'] = $_SESSION['user']['name'];
             $data['links'] = $this->getRoleLinks();
         }
         $data['content'] = $path;

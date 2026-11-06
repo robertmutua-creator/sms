@@ -3,6 +3,7 @@
 namespace App\Controllers;
 
 use App\Core\Controller;
+use App\Models\Users;
 
 class DashboardController extends Controller
 {
@@ -21,8 +22,9 @@ class DashboardController extends Controller
 
         switch ($user['role']) {
             case 'SuperAdmin':
-                echo "Welcome Super Admin.";
-                echo "<a href='/logout'>Logout</a>";
+                $data['moduleTitle'] = 'Dashboard';
+                $data['usersCount'] = (new Users())->count();
+                $this->view('superadmin/index', $data);
                 break;
             case 'SchoolAdmin':
                 echo "Welcome School Admin";
