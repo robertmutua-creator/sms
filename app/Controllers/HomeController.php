@@ -20,14 +20,18 @@ class HomeController extends Controller
     public function login(): void
     {
         if ($_SERVER['REQUEST_METHOD'] === 'GET') {
-            $this->view('auth/login', ['title' => 'SMS - Login', 'moduleTitle' => 'Authentication']);
+            $data = [
+                'title' => 'SMS - Login',
+                'token' => $this->setToken()
+            ];
+            $this->view('/auth/login', $data);
         }
 
         $username = $_POST['username'] ?? null;
         $password = $_POST['password'] ?? null;
         $token = $_POST['token'] ?? null;
 
-        if (empty($token)) {
+        if (!$this->confirmToken($token)) {
             $this->flash('error', 'Invalid token received!');
             $this->redirect('/login');
         }

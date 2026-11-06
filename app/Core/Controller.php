@@ -81,4 +81,21 @@ abstract class Controller
     {
         return isset($_SESSION['user_role']) && $_SESSION['user_role'] === $requiredRole;
     }
+
+    protected function setToken(): string
+    {
+        if (empty($_SESSION['csrf_token'])) {
+            $_SESSION['csrf_token'] = bin2hex(random_bytes(32));
+        }
+        return $_SESSION['csrf_token'];
+    }
+
+    protected function confirmToken(?string $token): bool
+    {
+        if (empty($token) || empty($_SESSION['csrf_token'])) {
+            return false;
+        }
+
+        return hash_equals($_SESSION['csrf_token'], $token);
+    }
 }
