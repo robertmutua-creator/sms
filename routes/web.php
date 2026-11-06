@@ -5,3 +5,4 @@ use App\Core\Router;
 
 Router::get('/', [HomeController::class, 'home']);
 Router::get('/login', [HomeController::class, 'login']);
+Router::post('/login', [HomeController::class, 'login']);

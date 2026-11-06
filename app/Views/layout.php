@@ -27,7 +27,10 @@
         <?php endif; ?>
 
         <div class="main">
+
             <h3><?= isset($moduleTitle) ? $moduleTitle : '--' ?></h3>
+            <?php require_once __DIR__ . '/alert.php'; ?>
+
             <?php if (isset($content)): ?>
                 <?php require_once __DIR__ . '/../Views/' . $content . '.php'; ?>
             <?php else: ?>
