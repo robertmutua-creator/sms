@@ -55,4 +55,13 @@ class HomeController extends Controller
             $this->redirect('/dashboard');
         }
     }
+
+    public function setup(): void
+    {
+        try {
+            (new Migration());
+        } catch (\Throwable $th) {
+            error_log('Error running migrations.' . $th->getMessage());
+        }
+    }
 }
