@@ -4,6 +4,7 @@ namespace App\Controllers;
 
 use App\Core\Controller;
 use App\Core\Migration;
+use App\Models\Users;
 
 class HomeController extends Controller
 {
@@ -21,5 +22,31 @@ class HomeController extends Controller
         if ($_SERVER['REQUEST_METHOD'] === 'GET') {
             $this->view('auth/login', ['title' => 'SMS - Login', 'moduleTitle' => 'Authentication']);
         }
+
+        $username = $_POST['username'] ?? null;
+        $password = $_POST['password'] ?? null;
+        $token = $_POST['token'] ?? null;
+
+        if (empty($token)) {
+            $this->flash('error', 'Invalid token received!');
+            $this->redirect('/login');
+        }
+
+        if (empty($username) || empty($password)) {
+            $this->flash('error', 'Both username and password are required.');
+            $this->redirect('/login');
+        }
+
+        $user = (new Users())->findByUsername($username);
+
+        if (empty($user) || !password_verify($password, $user['password'])) {
+            $this->flash('error', 'Incorrect credentials');
+            $this->redirect('/login');
+        }
+
+        unset($user['password']);
+        session_regenerate_id(true);
+        $_SESSION['user'] = $user;
+        $this->redirect('/dashboard');
     }
 }
