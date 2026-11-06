@@ -60,13 +60,6 @@ class HomeController extends Controller
     {
         try {
             (new Migration());
-            // (new Users())->create([
-            //     'name' => 'Super Admin',
-            //     'username' => 'superadmin',
-            //     'email' => 'superadmin@mail.com',
-            //     'password' => password_hash('123', PASSWORD_DEFAULT),
-            //     'role' => 'SuperAdmin'
-            // ]);
         } catch (\Throwable $th) {
             error_log('Error running migrations.' . $th->getMessage());
         }
