@@ -10,6 +10,7 @@ class DashboardController extends Controller
     {
         parent::__construct();
         if (!$this->isLoggedIn()) {
+            $this->flash('error', 'Please login to continue');
             $this->redirect('/login');
         }
     }

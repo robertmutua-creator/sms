@@ -13,6 +13,10 @@ abstract class Controller
 
     protected function view(string $path, array $data = []): void
     {
+        if ($this->isLoggedIn()) {
+            $data['user'] = $_SESSION['user'] ?? null;
+            $data['links'] = $this->getRoleLinks();
+        }
         $data['content'] = $path;
         extract($data);
         require_once __DIR__ . "/../Views/layout.php";
@@ -97,5 +101,24 @@ abstract class Controller
         }
 
         return hash_equals($_SESSION['csrf_token'], $token);
+    }
+
+    protected function getRoleLinks(): array
+    {
+        $role = $_SESSION['user']['role'] ?? '';
+
+        $links = [['url' => '/dashboard', 'label' => 'Dashboard']];
+
+        switch ($role) {
+            case 'SuperAdmin':
+                $links[] = ['url' => '/schools', 'label' => 'Manage Schools'];
+                $links[] = ['url' => '/admins', 'label' => 'Manage System Admins'];
+                break;
+
+            default:
+                break;
+        }
+        $links[] = ['url' => '/profile', 'label', 'Account Profile'];
+        return $links;
     }
 }
