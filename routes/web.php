@@ -5,6 +5,7 @@ use App\Controllers\HomeController;
 use App\Controllers\Admin\ClassesController;
 use App\Controllers\Admin\StudentsController;
 use App\Controllers\Admin\SubjectsController;
+use App\Controllers\Admin\TeachersController;
 use App\Controllers\SuperAdmin\AdminsController;
 use App\Controllers\SuperAdmin\SchoolsController;
 use App\Core\Router;
@@ -24,6 +25,13 @@ Router::post('/admin/students/save', [StudentsController::class, 'save']);
 Router::put('/admin/students/update/{id}', [StudentsController::class, 'save']);
 Router::patch('/admin/students/update/{id}', [StudentsController::class, 'save']);
 Router::delete('/admin/students/delete/{id}', [StudentsController::class, 'destroy']);
+
+Router::get('/admin/teachers', [TeachersController::class, 'index']);
+Router::get('/admin/teachers/edit/{id}', [TeachersController::class, 'index']);
+Router::post('/admin/teachers/save', [TeachersController::class, 'save']);
+Router::put('/admin/teachers/update/{id}', [TeachersController::class, 'save']);
+Router::patch('/admin/teachers/update/{id}', [TeachersController::class, 'save']);
+Router::delete('/admin/teachers/delete/{id}', [TeachersController::class, 'destroy']);
 
 Router::get('/admin/classes', [ClassesController::class, 'index']);
 Router::get('/admin/classes/edit/{id}', [ClassesController::class, 'index']);
