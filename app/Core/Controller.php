@@ -53,7 +53,7 @@ abstract class Controller
             return null;
         }
 
-        $uploadDir = __DIR__ . "/../storage/{$folder}/";
+        $uploadDir = __DIR__ . "/../../storage/{$folder}/";
         if (!is_dir($uploadDir)) {
             mkdir($uploadDir, 0775, true);
         }
@@ -71,8 +71,9 @@ abstract class Controller
 
     protected function deleteFile(?string $path): bool
     {
-        if ($path && file_exists(__DIR__ . "/../" . $path)) {
-            return unlink(__DIR__ . "/../" . $path);
+        $filePath = __DIR__ . "/../../" . ltrim((string) $path, '/');
+        if ($path && file_exists($filePath)) {
+            return unlink($filePath);
         }
         return false;
     }
@@ -112,7 +113,7 @@ abstract class Controller
 
         switch ($role) {
             case 'SuperAdmin':
-                $links[] = ['url' => '/schools', 'label' => 'Manage Schools'];
+                $links[] = ['url' => '/superadmin/schools', 'label' => 'Manage Schools'];
                 $links[] = ['url' => '/admins', 'label' => 'Manage System Admins'];
                 break;
 

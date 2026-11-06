@@ -27,7 +27,7 @@ class SchoolsController extends Controller
         $data['school'] = [];
         $data['schools'] = $this->schools->findAll();
         $data['moduleTitle'] = 'Manage Schools';
-        $this->view('superadmin/schools/index', $data);
+        $this->view('superadmin/schools', $data);
     }
 
     public function save(): void
@@ -46,14 +46,14 @@ class SchoolsController extends Controller
         // Validation for new schools (logo required)
         if (empty($id) && empty($logoPath)) {
             $this->flash('error', 'Logo file is required for new schools.');
-            $this->redirect($this->basePath . '/save');
+            $this->redirect($this->basePath);
             return;
         }
 
         // General text fields validation
         if (empty($code) || empty($name) || empty($username) || empty($address)) {
             $this->flash('error', 'All text fields are required.');
-            $this->redirect($this->basePath . (empty($id) ? '/save' : '/edit/' . $id));
+            $this->redirect($this->basePath);
         }
 
         $schoolData = [
@@ -90,12 +90,18 @@ class SchoolsController extends Controller
         } catch (Throwable $th) {
             error_log('Save operation failed: ' . $th->getMessage());
             $this->flash('error', 'An error occurred while saving the school.');
-            $this->redirect($this->basePath . (empty($id) ? '/save' : '/edit/' . $id));
+            $this->redirect($this->basePath);
         }
     }
 
-    public function edit(int $id): void
+    public function edit(): void
     {
+        $id = filter_var($_GET['id'] ?? null, FILTER_VALIDATE_INT);
+        if ($id === false || $id === null || $id < 1) {
+            $this->flash('error', 'Invalid school ID.');
+            $this->redirect($this->basePath);
+        }
+
         $school = $this->schools->find($id);
         if (!$school) {
             $this->flash('error', 'School not found.');
@@ -108,8 +114,14 @@ class SchoolsController extends Controller
         $this->view('superadmin/schools', $data);
     }
 
-    public function destroy(int $id): void
+    public function destroy(): void
     {
+        $id = filter_var($_POST['id'] ?? null, FILTER_VALIDATE_INT);
+        if ($id === false || $id === null || $id < 1) {
+            $this->flash('error', 'Invalid school ID.');
+            $this->redirect($this->basePath);
+        }
+
         $school = $this->schools->find($id);
         if ($school) {
             if (!empty($school['logo_path'])) {
