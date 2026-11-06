@@ -3,6 +3,7 @@
 use App\Controllers\DashboardController;
 use App\Controllers\HomeController;
 use App\Controllers\Admin\ClassesController;
+use App\Controllers\Admin\SubjectsController;
 use App\Controllers\SuperAdmin\AdminsController;
 use App\Controllers\SuperAdmin\SchoolsController;
 use App\Core\Router;
@@ -22,6 +23,13 @@ Router::post('/admin/classes/save', [ClassesController::class, 'save']);
 Router::put('/admin/classes/update/{id}', [ClassesController::class, 'save']);
 Router::patch('/admin/classes/update/{id}', [ClassesController::class, 'save']);
 Router::delete('/admin/classes/delete/{id}', [ClassesController::class, 'destroy']);
+
+Router::get('/admin/subjects', [SubjectsController::class, 'index']);
+Router::get('/admin/subjects/edit/{id}', [SubjectsController::class, 'index']);
+Router::post('/admin/subjects/save', [SubjectsController::class, 'save']);
+Router::put('/admin/subjects/update/{id}', [SubjectsController::class, 'save']);
+Router::patch('/admin/subjects/update/{id}', [SubjectsController::class, 'save']);
+Router::delete('/admin/subjects/delete/{id}', [SubjectsController::class, 'destroy']);
 
 Router::get('/superadmin/admins', [AdminsController::class, 'index']);
 Router::get('/superadmin/admins/edit/{id}', [AdminsController::class, 'index']);

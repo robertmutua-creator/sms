@@ -52,6 +52,16 @@ class Migration
                 FOREIGN KEY (school_id) REFERENCES schools(id) ON DELETE CASCADE,
                 UNIQUE KEY unique_school_class_code (school_id, code)
             ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;",
+
+            "CREATE TABLE IF NOT EXISTS subjects (
+                id INT AUTO_INCREMENT PRIMARY KEY,
+                school_id INT NOT NULL,
+                code VARCHAR(50) NOT NULL,
+                name VARCHAR(255) NOT NULL,
+                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                FOREIGN KEY (school_id) REFERENCES schools(id) ON DELETE CASCADE,
+                UNIQUE KEY unique_school_subject_code (school_id, code)
+            ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;",
         ];
 
         foreach ($statements as $sql) {
