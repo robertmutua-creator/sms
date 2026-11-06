@@ -33,6 +33,7 @@ class Migration
                 username VARCHAR(100) UNIQUE NOT NULL,
                 email VARCHAR(255) UNIQUE DEFAULT NULL,
                 password VARCHAR(255) NOT NULL,
+                profile_photo VARCHAR(255) DEFAULT NULL,
                 role ENUM('SuperAdmin', 'SchoolAdmin', 'Teacher', 'Student') NOT NULL,
                 upi VARCHAR(100) DEFAULT NULL UNIQUE,
                 admission_number VARCHAR(50) DEFAULT NULL,
@@ -50,6 +51,15 @@ class Migration
             } catch (PDOException $e) {
                 error_log("Migration error: " . $e->getMessage());
             }
+        }
+
+        try {
+            $column = $db->query("SHOW COLUMNS FROM users LIKE 'profile_photo'");
+            if ($column->fetch() === false) {
+                $db->exec("ALTER TABLE users ADD COLUMN profile_photo VARCHAR(255) DEFAULT NULL AFTER password");
+            }
+        } catch (PDOException $e) {
+            error_log("Profile photo migration error: " . $e->getMessage());
         }
     }
 }

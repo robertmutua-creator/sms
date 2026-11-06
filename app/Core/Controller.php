@@ -114,7 +114,7 @@ abstract class Controller
         switch ($role) {
             case 'SuperAdmin':
                 $links[] = ['url' => '/superadmin/schools', 'label' => 'Manage Schools'];
-                $links[] = ['url' => '/admins', 'label' => 'Manage System Admins'];
+                $links[] = ['url' => '/superadmin/admins', 'label' => 'Manage System Admins'];
                 break;
 
             default:

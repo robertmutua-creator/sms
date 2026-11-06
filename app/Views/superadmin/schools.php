@@ -5,7 +5,6 @@ $isEditing = !empty($school['id']);
 ?>
 
 <section>
-    <h4>Schools</h4>
     <div class="table-container">
         <table>
             <thead>
