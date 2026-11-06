@@ -5,6 +5,7 @@ namespace App\Controllers\Admin;
 use App\Core\Controller;
 use App\Models\Schools;
 use App\Models\Users;
+use PhpOffice\PhpSpreadsheet\IOFactory;
 use Throwable;
 
 class StudentsController extends Controller
@@ -172,6 +173,110 @@ class StudentsController extends Controller
         }
 
         $this->flash('success', 'Student successfully deleted.');
+        $this->redirect($this->basePath);
+    }
+
+    public function import(): void
+    {
+        if (!$this->confirmToken($_POST['token'] ?? null)) {
+            $this->flash('error', 'Invalid token received.');
+            $this->redirect($this->basePath);
+        }
+
+        $file = $_FILES['spreadsheet'] ?? null;
+
+        if (!$file || $file['error'] !== UPLOAD_ERR_OK) {
+            $this->flash('error', 'Please upload a valid spreadsheet file.');
+            $this->redirect($this->basePath);
+        }
+
+        $allowedExtensions = ['xlsx', 'xls', 'csv'];
+        $extension = strtolower(pathinfo($file['name'], PATHINFO_EXTENSION));
+
+        if (!in_array($extension, $allowedExtensions)) {
+            $this->flash('error', 'Invalid file type. Please upload an Excel or CSV file.');
+            $this->redirect($this->basePath);
+        }
+
+        try {
+            // FIXED: Typo corrected from $speadsheet to $spreadsheet
+            $spreadsheet = IOFactory::load($file['tmp_name']);
+            $sheetData = $spreadsheet->getActiveSheet()->toArray(null, true, true, true);
+
+            $school = $this->school->find($this->schoolId());
+            $schoolUsername = $school['username'] ?? '';
+
+            if ($schoolUsername === '') {
+                $this->flash('error', 'School Username not set. Cannot generate students usernames.');
+                $this->redirect($this->basePath);
+            }
+
+            $successCount = 0;
+            $errorCount = 0;
+            $rowCount = 0;
+
+            foreach ($sheetData as $index => $row) {
+                if ($index === 1) {
+                    continue;
+                }
+
+                $fullName = trim($row['A'] ?? '');
+                $admNo = trim($row['B'] ?? '');
+                $upi = trim($row['C'] ?? '');
+                $status = !empty(trim($row['D'] ?? '')) ? trim($row['D']) : 'Active';
+
+                if ($fullName === '' && $admNo === '' && $upi === '') {
+                    continue;
+                }
+
+                $rowCount++;
+
+                if ($fullName === '' || $admNo === '' || $upi === '') {
+                    $errorCount++;
+                    continue;
+                }
+
+                $formattedName = $this->textFormat($fullName, 'title');
+                // FIXED: Changed from 'title' to 'upper' for admission numbers
+                $formattedAdm = $this->textFormat($admNo, 'upper');
+                $formattedUpi = $this->textFormat($upi, 'upper');
+                $username = strtolower($formattedAdm) . "@" . strtolower($schoolUsername);
+
+                $studentData = [
+                    'name' => $formattedName, // FIXED: Matches your DB column 'full_name'
+                    'username' => $username,
+                    'password' => password_hash($formattedAdm, PASSWORD_DEFAULT),
+                    'role' => 'Student',
+                    'upi' => $formattedUpi,
+                    'admission_number' => $formattedAdm,
+                    'status' => $status
+                ];
+
+                try {
+                    if ($this->students->create($studentData)) {
+                        $successCount++;
+                    } else {
+                        error_log("Failed to import student row {$index}: database insert returned false.");
+                        $errorCount++;
+                    }
+                } catch (\Throwable $th) {
+                    error_log("Failed to import student row {$index}: " . $th->getMessage());
+                    $errorCount++;
+                }
+            }
+
+            if ($rowCount === 0) {
+                $this->flash('error', 'No student records found in the spreadsheet.');
+            } elseif ($errorCount > 0) {
+                $this->flash('error', "Import completed with errors: {$successCount} imported, {$errorCount} failed. Check the server logs for database errors.");
+            } else {
+                $this->flash('success', "Import completed: {$successCount} imported successfully.");
+            }
+        } catch (\Throwable $th) {
+            error_log('Spreadsheet processing error: ' . $th->getMessage());
+            $this->flash('error', 'Failed to read the spreadsheet file.');
+        }
+
         $this->redirect($this->basePath);
     }
 }

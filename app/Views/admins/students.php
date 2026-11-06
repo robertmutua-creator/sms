@@ -93,3 +93,29 @@ $isEditing = !empty($student['id']);
         <?php endif; ?>
     </form>
 </section>
+
+<div class="modal fade" id="importModal" tabindex="-1" aria-labelledby="importModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <form action="/admin/students/import" method="POST" enctype="multipart/form-data" class="modal-content">
+            <input type="hidden" name="token" value="<?= htmlspecialchars($token ?? '', ENT_QUOTES, 'UTF-8') ?>">
+
+            <div class="modal-header">
+                <h5 class="modal-title" id="importModalLabel">Import Students via Spreadsheet</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+
+            <div class="modal-body">
+                <div class="form-group">
+                    <label for="spreadsheet">Select Excel or CSV File</label>
+                    <input type="file" id="spreadsheet" name="spreadsheet" accept=".xlsx, .xls, .csv" required>
+                    <p class="help-text">Required Columns: Full Name (A), Admission Number (B), UPI (C). Row 1 headers.</p>
+                </div>
+            </div>
+
+            <div class="modal-footer">
+                <button type="button" class="btn-sm" data-bs-dismiss="modal">Cancel</button>
+                <button type="submit" class="btn-submit">Import Records</button>
+            </div>
+        </form>
+    </div>
+</div>

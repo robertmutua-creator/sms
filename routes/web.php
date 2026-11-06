@@ -25,6 +25,7 @@ Router::post('/admin/students/save', [StudentsController::class, 'save']);
 Router::put('/admin/students/update/{id}', [StudentsController::class, 'save']);
 Router::patch('/admin/students/update/{id}', [StudentsController::class, 'save']);
 Router::delete('/admin/students/delete/{id}', [StudentsController::class, 'destroy']);
+Router::post('/admin/students/import', [StudentsController::class, 'import']);
 
 Router::get('/admin/teachers', [TeachersController::class, 'index']);
 Router::get('/admin/teachers/edit/{id}', [TeachersController::class, 'index']);
