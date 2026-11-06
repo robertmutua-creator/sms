@@ -74,12 +74,12 @@ abstract class Controller
 
     protected function isLoggedIn(): bool
     {
-        return isset($_SESSION['user_id']);
+        return isset($_SESSION['user']);
     }
 
     protected function checkRole(string $requiredRole): bool
     {
-        return isset($_SESSION['user_role']) && $_SESSION['user_role'] === $requiredRole;
+        return isset($_SESSION['user']) && $_SESSION['user']['role'] === $requiredRole;
     }
 
     protected function setToken(): string
