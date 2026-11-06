@@ -3,7 +3,9 @@
 namespace App\Controllers;
 
 use App\Core\Controller;
+use App\Models\Classes;
 use App\Models\Schools;
+use App\Models\Subjects;
 use App\Models\Users;
 
 class DashboardController extends Controller
@@ -20,17 +22,19 @@ class DashboardController extends Controller
     public function index(): void
     {
         $user = $_SESSION['user'];
-
+        $data['moduleTitle'] = 'Dashboard';
         switch ($user['role']) {
             case 'SuperAdmin':
-                $data['moduleTitle'] = 'Dashboard';
                 $data['usersCount'] = (new Users())->count();
                 $data['schoolsCount'] = (new Schools())->count();
                 $this->view('superadmin/index', $data);
                 break;
             case 'SchoolAdmin':
-                echo "Welcome School Admin";
-                echo "<a href='/logout'>Logout</a>";
+                $data['studentsCount'] = (new Users($this->schoolId()))->count(['role' => 'Student']);
+                $data['teachersCount'] = (new Users($this->schoolId()))->count(['role' => 'Teacher']);
+                $data['classesCount'] = (new Classes($this->schoolId()))->count();
+                $data['subjectsCount'] = (new Subjects($this->schoolId()))->count();
+                $this->view('admins/index', $data);
                 break;
             case 'Teacher':
                 echo "Welcome Teacher";

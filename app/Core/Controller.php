@@ -123,4 +123,9 @@ abstract class Controller
         $links[] = ['url' => '/profile', 'label', 'Account Profile'];
         return $links;
     }
+
+    protected function schoolId(): int
+    {
+        return $_SESSION['user']['school_id'] ?? null;
+    }
 }
