@@ -116,6 +116,12 @@ abstract class Controller
                 $links[] = ['url' => '/superadmin/schools', 'label' => 'Manage Schools'];
                 $links[] = ['url' => '/superadmin/admins', 'label' => 'Manage System Admins'];
                 break;
+            case 'SchoolAdmin':
+                $links[] = ['url' => '/admin/students', 'label' => 'Manage Students'];
+                $links[] = ['url' => '/admin/teachers', 'label' => 'Manage Teachers'];
+                $links[] = ['url' => '/admin/classes', 'label' => 'Manage Classes'];
+                $links[] = ['url' => '/admin/subjects', 'label' => 'Manage Subjects'];
+                break;
 
             default:
                 break;
