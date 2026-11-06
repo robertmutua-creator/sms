@@ -18,7 +18,7 @@ Router::get('/dashboard', [DashboardController::class, 'index']);
 Router::get('/superadmin/admins', [AdminsController::class, 'index']);
 Router::get('/superadmin/admins/edit/{id}', [AdminsController::class, 'index']);
 Router::post('/superadmin/admins/save', [AdminsController::class, 'save']);
-Router::post('/superadmin/admins/update/{id}', [AdminsController::class, 'update']);
+Router::post('/superadmin/admins/update/{id}', [AdminsController::class, 'save']);
 Router::post('/superadmin/admins/delete/{id}', [AdminsController::class, 'destroy']);
 
 Router::get('/superadmin/schools', [SchoolsController::class, 'index']);

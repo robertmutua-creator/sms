@@ -45,124 +45,64 @@ class SchoolsController extends Controller
         $this->view('superadmin/schools', $data);
     }
 
-    public function save(): void
+    public function save(?int $id = null): void
     {
         $code = trim($_POST['code'] ?? '');
         $name = trim($_POST['name'] ?? '');
         $username = trim($_POST['username'] ?? '');
         $address = trim($_POST['address'] ?? '');
         $status = $_POST['status'] ?? 'Active';
-        $logoFile = $_FILES['logo'] ?? null;
 
-        if (empty($code) || empty($name) || empty($username) || empty($address)) {
-            $this->flash('error', 'All text fields are required.');
+        // Check if a file was actually uploaded without errors
+        $hasNewLogo = isset($_FILES['logo']) && $_FILES['logo']['error'] === UPLOAD_ERR_OK;
+
+        // 1. Validate required text fields
+        if (empty($code) || empty($name) || empty($username) || empty($address) || empty($status)) {
+            $this->flash('error', 'All fields are required.');
             $this->redirect($this->basePath);
+            return; // CRITICAL: Stop execution!
         }
 
-        if ($logoFile === null || ($logoFile['error'] ?? UPLOAD_ERR_NO_FILE) !== UPLOAD_ERR_OK) {
-            $this->flash('error', 'Logo file is required for new schools.');
+        // 2. Validate logo is provided for NEW records
+        if (empty($id) && !$hasNewLogo) {
+            $this->flash('error', 'School Logo is required for new schools.');
             $this->redirect($this->basePath);
-        }
-
-        $logoPath = $this->handleFileUpload($logoFile, 'logos');
-        if ($logoPath === null) {
-            $this->flash('error', 'The school logo could not be uploaded.');
-            $this->redirect($this->basePath);
-        }
-
-        $schoolData = [
-            'code' => $this->textFormat($code, 'upper'),
-            'username' => $this->textFormat($username, 'lower'),
-            'name' => $this->textFormat($name, 'title'),
-            'address' => $address,
-            'status' => $status,
-            'logo_path' => $logoPath,
-        ];
-
-        try {
-            if (!$this->schools->create($schoolData)) {
-                $this->deleteFile($logoPath);
-                $this->flash('error', 'Unable to create the school.');
-                $this->redirect($this->basePath);
-            }
-
-            $this->flash('success', 'School created successfully.');
-            $this->redirect($this->basePath);
-        } catch (Throwable $th) {
-            $this->deleteFile($logoPath);
-            error_log('Save operation failed: ' . $th->getMessage());
-            $this->flash('error', 'An error occurred while creating the school.');
-            $this->redirect($this->basePath);
-        }
-    }
-
-    public function update(string $id): void
-    {
-        $schoolId = filter_var($id, FILTER_VALIDATE_INT);
-        if ($schoolId === false || $schoolId < 1) {
-            $this->flash('error', 'Invalid school ID.');
-            $this->redirect($this->basePath);
-        }
-
-        $existingSchool = $this->schools->find($schoolId);
-        if ($existingSchool === null) {
-            $this->flash('error', 'School not found.');
-            $this->redirect($this->basePath);
-        }
-
-        $code = trim($_POST['code'] ?? '');
-        $name = trim($_POST['name'] ?? '');
-        $username = trim($_POST['username'] ?? '');
-        $address = trim($_POST['address'] ?? '');
-        $status = $_POST['status'] ?? 'Active';
-        $logoFile = $_FILES['logo'] ?? null;
-
-        if (empty($code) || empty($name) || empty($username) || empty($address)) {
-            $this->flash('error', 'All text fields are required.');
-            $this->redirect($this->basePath);
+            return; // CRITICAL: Stop execution!
         }
 
         $schoolData = [
             'code' => $this->textFormat($code, 'upper'),
-            'username' => $this->textFormat($username, 'lower'),
             'name' => $this->textFormat($name, 'title'),
-            'address' => $address,
+            'username' => $this->textFormat($username, 'lower'),
+            'address' => $address, // Kept normal or use textFormat if preferred
             'status' => $status,
         ];
 
-        $logoPath = null;
-        if ($logoFile !== null && ($logoFile['error'] ?? UPLOAD_ERR_NO_FILE) !== UPLOAD_ERR_NO_FILE) {
-            $logoPath = $this->handleFileUpload($logoFile, 'logos');
-            if ($logoPath === null) {
-                $this->flash('error', 'The school logo could not be uploaded.');
-                $this->redirect($this->basePath);
-            }
-            $schoolData['logo_path'] = $logoPath;
-        }
+        // 3. Handle Logo Upload & Replacement logic
+        if ($hasNewLogo) {
+            $newLogoPath = $this->handleFileUpload($_FILES['logo'], 'logos');
 
-        try {
-            if (!$this->schools->update($schoolId, $schoolData)) {
-                if ($logoPath !== null) {
-                    $this->deleteFile($logoPath);
+            if (!empty($id)) {
+                // Fetch existing school to delete old logo file if it exists
+                $currentSchool = $this->schools->find($id);
+                if (!empty($currentSchool['logo_path'])) {
+                    $this->deleteFile($currentSchool['logo_path']);
                 }
-                $this->flash('error', 'Unable to update the school.');
-                $this->redirect($this->basePath);
             }
 
-            if ($logoPath !== null && !empty($existingSchool['logo_path'])) {
-                $this->deleteFile($existingSchool['logo_path']);
-            }
-
-            $this->flash('success', 'School updated successfully.');
-            $this->redirect($this->basePath);
-        } catch (Throwable $th) {
-            if ($logoPath !== null) {
-                $this->deleteFile($logoPath);
-            }
-            error_log('Update operation failed: ' . $th->getMessage());
-            $this->flash('error', 'An error occurred while updating the school.');
-            $this->redirect($this->basePath);
+            $schoolData['logo_path'] = $newLogoPath;
         }
+
+        // 4. Database Persistence
+        if (!empty($id)) {
+            $this->schools->update($id, $schoolData);
+            $this->flash('success', 'School updated successfully.');
+        } else {
+            $this->schools->create($schoolData);
+            $this->flash('success', 'School created successfully.');
+        }
+
+        $this->redirect($this->basePath);
     }
 
     public function destroy(string $id): void
@@ -180,7 +120,7 @@ class SchoolsController extends Controller
             }
 
             $this->schools->delete($schoolId);
-            $this->flash('success', 'Schools succesfully deleted.');
+            $this->flash('success', 'School succesfully deleted.');
         }
         $this->redirect($this->basePath);
     }
