@@ -38,9 +38,8 @@ $isEditing = !empty($admin['id']);
                             <td><?= htmlspecialchars($listedAdmin['username'], ENT_QUOTES, 'UTF-8') ?></td>
                             <td><?= htmlspecialchars($listedAdmin['school_name'], ENT_QUOTES, 'UTF-8') ?></td>
                             <td>
-                                <a class="btn-sm btn-edit" href="/superadmin/admins/edit?id=<?= (int) $listedAdmin['id'] ?>">Edit</a>
-                                <form id="delete-admin-<?= (int) $listedAdmin['id'] ?>" action="/superadmin/admins/delete" method="post" onsubmit="return confirm('Delete this admin?');" hidden>
-                                    <input type="hidden" name="id" value="<?= (int) $listedAdmin['id'] ?>">
+                                <a class="btn-sm btn-edit" href="/superadmin/admins/edit/<?= (int) $listedAdmin['id'] ?>">Edit</a>
+                                <form id="delete-admin-<?= (int) $listedAdmin['id'] ?>" action="/superadmin/admins/delete/<?= (int) $listedAdmin['id'] ?>" method="post" onsubmit="return confirm('Delete this admin?');" hidden>
                                     <input type="hidden" name="token" value="<?= htmlspecialchars($token ?? '', ENT_QUOTES, 'UTF-8') ?>">
                                 </form>
                                 <button class="btn-sm btn-delete" type="submit" form="delete-admin-<?= (int) $listedAdmin['id'] ?>">Delete</button>
@@ -55,11 +54,8 @@ $isEditing = !empty($admin['id']);
 
 <section>
     <h4><?= $isEditing ? 'Edit School Admin' : 'Add School Admin' ?></h4>
-    <form action="/superadmin/admins/save" method="post" enctype="multipart/form-data">
+    <form action="<?= $isEditing ? '/superadmin/admins/update/' . (int) $admin['id'] : '/superadmin/admins/save' ?>" method="post" enctype="multipart/form-data">
         <input type="hidden" name="token" value="<?= htmlspecialchars($token ?? '', ENT_QUOTES, 'UTF-8') ?>">
-        <?php if ($isEditing): ?>
-            <input type="hidden" name="id" value="<?= (int) $admin['id'] ?>">
-        <?php endif; ?>
         <div class="form-group">
             <label for="full_name">Full name</label>
             <input type="text" id="full_name" name="full_name" value="<?= htmlspecialchars($admin['name'] ?? '', ENT_QUOTES, 'UTF-8') ?>" required>

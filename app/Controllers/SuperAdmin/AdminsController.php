@@ -24,30 +24,21 @@ class AdminsController extends Controller
         $this->users = new Users();
     }
 
-    public function index(): void
+    public function index(?string $id = null): void
     {
-        $data = [
-            'admins' => $this->users->findAdminsWithSchoolName(),
-            'schools' => $this->schools->findAll(),
-            'admin' => [],
-            'token' => $this->setToken(),
-            'moduleTitle' => 'Manage School Admins',
-        ];
-        $this->view('superadmin/admins', $data);
-    }
+        $admin = [];
+        if ($id !== null) {
+            $adminId = filter_var($id, FILTER_VALIDATE_INT);
+            if ($adminId === false || $adminId < 1) {
+                $this->flash('error', 'Invalid admin ID.');
+                $this->redirect($this->basePath);
+            }
 
-    public function edit(): void
-    {
-        $id = filter_var($_GET['id'] ?? null, FILTER_VALIDATE_INT);
-        if ($id === false || $id === null || $id < 1) {
-            $this->flash('error', 'Invalid admin ID.');
-            $this->redirect($this->basePath);
-        }
-
-        $admin = $this->users->find($id);
-        if (!$admin || $admin['role'] !== 'SchoolAdmin') {
-            $this->flash('error', 'Admin not found.');
-            $this->redirect($this->basePath);
+            $admin = $this->users->find($adminId);
+            if (!$admin || $admin['role'] !== 'SchoolAdmin') {
+                $this->flash('error', 'Admin not found.');
+                $this->redirect($this->basePath);
+            }
         }
 
         $data = [
@@ -55,7 +46,7 @@ class AdminsController extends Controller
             'schools' => $this->schools->findAll(),
             'admin' => $admin,
             'token' => $this->setToken(),
-            'moduleTitle' => 'Edit School Admin',
+            'moduleTitle' => $admin ? 'Edit School Admin' : 'Manage School Admins',
         ];
         $this->view('superadmin/admins', $data);
     }
@@ -67,14 +58,78 @@ class AdminsController extends Controller
             $this->redirect($this->basePath);
         }
 
-        $id = filter_var($_POST['id'] ?? null, FILTER_VALIDATE_INT);
-        if ($id === false || ($id !== null && $id < 1)) {
+        $fullName = trim($_POST['full_name'] ?? '');
+        $username = $this->textFormat(trim($_POST['username'] ?? ''), 'lower');
+        $schoolId = filter_var($_POST['school_id'] ?? null, FILTER_VALIDATE_INT);
+        $profilePhoto = $_FILES['profile_photo'] ?? null;
+
+        if ($fullName === '' || $username === '' || $schoolId === false || $schoolId === null || $schoolId < 1) {
+            $this->flash('error', 'Full name, username, and a registered school are required.');
+            $this->redirect($this->basePath);
+        }
+
+        if ($this->schools->find($schoolId) === null) {
+            $this->flash('error', 'The selected school was not found.');
+            $this->redirect($this->basePath);
+        }
+
+        $imageTypes = [
+            'image/jpeg' => 'jpg',
+            'image/png' => 'png',
+            'image/gif' => 'gif',
+            'image/webp' => 'webp',
+        ];
+        $imageInfo = $profilePhoto !== null && $profilePhoto['error'] === UPLOAD_ERR_OK
+            ? getimagesize($profilePhoto['tmp_name'])
+            : false;
+        $extension = $imageInfo !== false ? ($imageTypes[$imageInfo['mime']] ?? null) : null;
+
+        if ($extension === null || $profilePhoto['size'] > 5 * 1024 * 1024) {
+            $this->flash('error', 'Upload a valid JPEG, PNG, GIF, or WEBP profile photo no larger than 5 MB.');
+            $this->redirect($this->basePath);
+        }
+
+        $profilePhoto['name'] = 'profile.' . $extension;
+        $profilePhotoPath = $this->handleFileUpload($profilePhoto, 'profiles');
+        if ($profilePhotoPath === null) {
+            $this->flash('error', 'The profile photo could not be uploaded.');
+            $this->redirect($this->basePath);
+        }
+
+        $created = $this->users->create([
+            'school_id' => $schoolId,
+            'name' => $fullName,
+            'username' => $username,
+            'password' => password_hash($username, PASSWORD_DEFAULT),
+            'role' => 'SchoolAdmin',
+            'profile_photo' => $profilePhotoPath,
+        ]);
+
+        if (!$created) {
+            $this->deleteFile($profilePhotoPath);
+            $this->flash('error', 'Unable to create the admin. Check that the username is not already in use.');
+            $this->redirect($this->basePath);
+        }
+
+        $this->flash('success', 'School admin created. Their default password is their username.');
+        $this->redirect($this->basePath);
+    }
+
+    public function update(string $id): void
+    {
+        $adminId = filter_var($id, FILTER_VALIDATE_INT);
+        if ($adminId === false || $adminId < 1) {
             $this->flash('error', 'Invalid admin ID.');
             $this->redirect($this->basePath);
         }
-        $isEditing = $id !== null;
-        $existingAdmin = $isEditing ? $this->users->find($id) : null;
-        if ($isEditing && (!$existingAdmin || $existingAdmin['role'] !== 'SchoolAdmin')) {
+
+        if (!$this->confirmToken($_POST['token'] ?? null)) {
+            $this->flash('error', 'Invalid token received.');
+            $this->redirect($this->basePath);
+        }
+
+        $existingAdmin = $this->users->find($adminId);
+        if (!$existingAdmin || $existingAdmin['role'] !== 'SchoolAdmin') {
             $this->flash('error', 'Admin not found.');
             $this->redirect($this->basePath);
         }
@@ -119,9 +174,6 @@ class AdminsController extends Controller
                 $this->flash('error', 'The profile photo could not be uploaded.');
                 $this->redirect($this->basePath);
             }
-        } elseif (!$isEditing) {
-            $this->flash('error', 'A profile photo is required for a new admin.');
-            $this->redirect($this->basePath);
         }
 
         $adminData = [
@@ -134,51 +186,42 @@ class AdminsController extends Controller
             $adminData['profile_photo'] = $profilePhotoPath;
         }
 
-        if (!$isEditing) {
-            $adminData['password'] = password_hash($username, PASSWORD_DEFAULT);
-            $adminData['role'] = 'SchoolAdmin';
-        }
-
-        $saved = $isEditing
-            ? $this->users->update($id, $adminData)
-            : $this->users->create($adminData);
-
-        if (!$saved) {
+        if (!$this->users->update($adminId, $adminData)) {
             if ($profilePhotoPath !== null) {
                 $this->deleteFile($profilePhotoPath);
             }
-            $this->flash('error', 'Unable to save the admin. Check that the username is not already in use.');
+            $this->flash('error', 'Unable to update the admin. Check that the username is not already in use.');
             $this->redirect($this->basePath);
         }
 
-        if ($isEditing && $profilePhotoPath !== null && !empty($existingAdmin['profile_photo'])) {
+        if ($profilePhotoPath !== null && !empty($existingAdmin['profile_photo'])) {
             $this->deleteFile($existingAdmin['profile_photo']);
         }
 
-        $this->flash('success', $isEditing ? 'School admin updated successfully.' : 'School admin created. Their default password is their username.');
+        $this->flash('success', 'School admin updated successfully.');
         $this->redirect($this->basePath);
     }
 
-    public function destroy(): void
+    public function destroy(string $id): void
     {
         if (!$this->confirmToken($_POST['token'] ?? null)) {
             $this->flash('error', 'Invalid token received.');
             $this->redirect($this->basePath);
         }
 
-        $id = filter_var($_POST['id'] ?? null, FILTER_VALIDATE_INT);
-        if ($id === false || $id === null || $id < 1) {
+        $adminId = filter_var($id, FILTER_VALIDATE_INT);
+        if ($adminId === false || $adminId < 1) {
             $this->flash('error', 'Invalid admin ID.');
             $this->redirect($this->basePath);
         }
 
-        $admin = $this->users->find($id);
+        $admin = $this->users->find($adminId);
         if (!$admin || $admin['role'] !== 'SchoolAdmin') {
             $this->flash('error', 'Admin not found.');
             $this->redirect($this->basePath);
         }
 
-        if (!$this->users->delete($id)) {
+        if (!$this->users->delete($adminId)) {
             $this->flash('error', 'Unable to delete the admin.');
             $this->redirect($this->basePath);
         }

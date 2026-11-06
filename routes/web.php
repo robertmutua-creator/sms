@@ -16,11 +16,13 @@ Router::get('/logout', [HomeController::class, 'logout']);
 Router::get('/dashboard', [DashboardController::class, 'index']);
 
 Router::get('/superadmin/admins', [AdminsController::class, 'index']);
-Router::get('/superadmin/admins/edit', [AdminsController::class, 'edit']);
+Router::get('/superadmin/admins/edit/{id}', [AdminsController::class, 'index']);
 Router::post('/superadmin/admins/save', [AdminsController::class, 'save']);
-Router::post('/superadmin/admins/delete', [AdminsController::class, 'destroy']);
+Router::post('/superadmin/admins/update/{id}', [AdminsController::class, 'update']);
+Router::post('/superadmin/admins/delete/{id}', [AdminsController::class, 'destroy']);
 
 Router::get('/superadmin/schools', [SchoolsController::class, 'index']);
-Router::get('/superadmin/schools/edit', [SchoolsController::class, 'edit']);
+Router::get('/superadmin/schools/edit/{id}', [SchoolsController::class, 'index']);
 Router::post('/superadmin/schools/save', [SchoolsController::class, 'save']);
-Router::post('/superadmin/schools/delete', [SchoolsController::class, 'destroy']);
+Router::post('/superadmin/schools/update/{id}', [SchoolsController::class, 'update']);
+Router::post('/superadmin/schools/delete/{id}', [SchoolsController::class, 'destroy']);

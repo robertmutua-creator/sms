@@ -39,9 +39,8 @@ $isEditing = !empty($school['id']);
                             <td><?= htmlspecialchars($listedSchool['address'], ENT_QUOTES, 'UTF-8') ?></td>
                             <td><?= htmlspecialchars($listedSchool['status'], ENT_QUOTES, 'UTF-8') ?></td>
                             <td>
-                                <a class="btn-sm btn-edit" href="/superadmin/schools/edit?id=<?= (int) $listedSchool['id'] ?>">Edit</a>
-                                <form id="delete-school-<?= (int) $listedSchool['id'] ?>" action="/superadmin/schools/delete" method="post" onsubmit="return confirm('Delete this school?');" hidden>
-                                    <input type="hidden" name="id" value="<?= (int) $listedSchool['id'] ?>">
+                                <a class="btn-sm btn-edit" href="/superadmin/schools/edit/<?= (int) $listedSchool['id'] ?>">Edit</a>
+                                <form id="delete-school-<?= (int) $listedSchool['id'] ?>" action="/superadmin/schools/delete/<?= (int) $listedSchool['id'] ?>" method="post" onsubmit="return confirm('Delete this school?');" hidden>
                                 </form>
                                 <button class="btn-sm btn-delete" type="submit" form="delete-school-<?= (int) $listedSchool['id'] ?>">Delete</button>
                             </td>
@@ -55,10 +54,7 @@ $isEditing = !empty($school['id']);
 
 <section>
     <h4><?= $isEditing ? 'Edit School' : 'Add School' ?></h4>
-    <form action="/superadmin/schools/save" method="post" enctype="multipart/form-data">
-        <?php if ($isEditing): ?>
-            <input type="hidden" name="id" value="<?= (int) $school['id'] ?>">
-        <?php endif; ?>
+    <form action="<?= $isEditing ? '/superadmin/schools/update/' . (int) $school['id'] : '/superadmin/schools/save' ?>" method="post" enctype="multipart/form-data">
 
         <div class="form-group">
             <label for="code">School code</label>
