@@ -3,6 +3,7 @@
 use App\Controllers\DashboardController;
 use App\Controllers\HomeController;
 use App\Controllers\Admin\ClassesController;
+use App\Controllers\Admin\StudentsController;
 use App\Controllers\Admin\SubjectsController;
 use App\Controllers\SuperAdmin\AdminsController;
 use App\Controllers\SuperAdmin\SchoolsController;
@@ -16,6 +17,13 @@ Router::post('/login', [HomeController::class, 'login']);
 Router::post('/logout', [HomeController::class, 'logout']);
 
 Router::get('/dashboard', [DashboardController::class, 'index']);
+
+Router::get('/admin/students', [StudentsController::class, 'index']);
+Router::get('/admin/students/edit/{id}', [StudentsController::class, 'index']);
+Router::post('/admin/students/save', [StudentsController::class, 'save']);
+Router::put('/admin/students/update/{id}', [StudentsController::class, 'save']);
+Router::patch('/admin/students/update/{id}', [StudentsController::class, 'save']);
+Router::delete('/admin/students/delete/{id}', [StudentsController::class, 'destroy']);
 
 Router::get('/admin/classes', [ClassesController::class, 'index']);
 Router::get('/admin/classes/edit/{id}', [ClassesController::class, 'index']);
