@@ -122,6 +122,7 @@ abstract class Controller
                 $links[] = ['url' => '/admin/teachers', 'label' => 'Manage Teachers'];
                 $links[] = ['url' => '/admin/classes', 'label' => 'Manage Classes'];
                 $links[] = ['url' => '/admin/subjects', 'label' => 'Manage Subjects'];
+                $links[] = ['url' => '/admin/years', 'label' => 'Manage Academic Years'];
                 break;
 
             default:

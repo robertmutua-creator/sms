@@ -7,6 +7,7 @@ use App\Models\Classes;
 use App\Models\Schools;
 use App\Models\Subjects;
 use App\Models\Users;
+use App\Models\Years;
 
 class DashboardController extends Controller
 {
@@ -34,6 +35,8 @@ class DashboardController extends Controller
                 $data['teachersCount'] = (new Users($this->schoolId()))->count(['role' => 'Teacher']);
                 $data['classesCount'] = (new Classes($this->schoolId()))->count();
                 $data['subjectsCount'] = (new Subjects($this->schoolId()))->count();
+                $currentYears = (new Years($this->schoolId()))->findAll(['status' => 'active']);
+                $data['currentAcademicYear'] = $currentYears[0]['year'] ?? null;
                 $this->view('admins/index', $data);
                 break;
             case 'Teacher':

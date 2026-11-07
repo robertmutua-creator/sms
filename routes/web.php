@@ -6,6 +6,7 @@ use App\Controllers\Admin\ClassesController;
 use App\Controllers\Admin\StudentsController;
 use App\Controllers\Admin\SubjectsController;
 use App\Controllers\Admin\TeachersController;
+use App\Controllers\Admin\YearsController;
 use App\Controllers\SuperAdmin\AdminsController;
 use App\Controllers\SuperAdmin\SchoolsController;
 use App\Core\Router;
@@ -47,6 +48,13 @@ Router::post('/admin/subjects/save', [SubjectsController::class, 'save']);
 Router::put('/admin/subjects/update/{id}', [SubjectsController::class, 'save']);
 Router::patch('/admin/subjects/update/{id}', [SubjectsController::class, 'save']);
 Router::delete('/admin/subjects/delete/{id}', [SubjectsController::class, 'destroy']);
+
+Router::get('/admin/years', [YearsController::class, 'index']);
+Router::get('/admin/years/edit/{id}', [YearsController::class, 'index']);
+Router::post('/admin/years/save', [YearsController::class, 'save']);
+Router::put('/admin/years/update/{id}', [YearsController::class, 'save']);
+Router::patch('/admin/years/update/{id}', [YearsController::class, 'save']);
+Router::delete('/admin/years/delete/{id}', [YearsController::class, 'destroy']);
 
 Router::get('/superadmin/admins', [AdminsController::class, 'index']);
 Router::get('/superadmin/admins/edit/{id}', [AdminsController::class, 'index']);

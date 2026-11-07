@@ -18,4 +18,12 @@
         <h4>Total Subjects</h4>
         <p class="stat"><?= htmlspecialchars($subjectsCount ?? '--')  ?></p>
     </article>
+
+    <article class="card">
+        <h4>Current Academic Year</h4>
+        <p class="stat">
+            <?= htmlspecialchars($currentAcademicYear === null ? 'Not set' : (string) $currentAcademicYear, ENT_QUOTES, 'UTF-8') ?>
+        </p>
+        <a href="/admin/years">Manage Academic Years</a>
+    </article>
 </div>
