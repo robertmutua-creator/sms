@@ -85,6 +85,21 @@ class Migration
                 FOREIGN KEY (school_id) REFERENCES schools(id) ON DELETE CASCADE ON UPDATE CASCADE,
                 UNIQUE(year_id,term)
             )ENGINE=InnoDB DEFAULT CHARSET=utf8mb4",
+
+            "CREATE TABLE IF NOT EXISTS student_classes(
+                id INT AUTO_INCREMENT PRIMARY KEY,
+                school_id INT NOT NULL,
+                student_id INT NOT NULL,
+                class_id INT NOT NULL,
+                year_id INT NOT NULL,
+                status enum('active','completed','graduated') NOT NULL,
+                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                FOREIGN KEY (school_id) REFERENCES schools(id) ON DELETE CASCADE ON UPDATE CASCADE,
+                FOREIGN KEY (student_id) REFERENCES users(id) ON DELETE CASCADE ON UPDATE CASCADE,
+                FOREIGN KEY (class_id) REFERENCES classes(id) ON DELETE CASCADE ON UPDATE CASCADE,
+                FOREIGN KEY (year_id) REFERENCES years(id) ON DELETE CASCADE ON UPDATE CASCADE,
+                UNIQUE(student_id,year_id)
+            )ENGINE=InnoDB DEFAULT CHARSET=utf8mb4"
         ];
 
         foreach ($statements as $sql) {
