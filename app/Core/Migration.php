@@ -37,7 +37,8 @@ class Migration
                 role ENUM('SuperAdmin', 'SchoolAdmin', 'Teacher', 'Student') NOT NULL,
                 upi VARCHAR(100) DEFAULT NULL UNIQUE,
                 admission_number VARCHAR(50) DEFAULT NULL,
-                status ENUM('Active', 'Inactive') DEFAULT 'Active',
+                dob DATE DEFAULT NULL,
+                doa DATE DEFAULT NULL,
                 created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
                 FOREIGN KEY (school_id) REFERENCES schools(id) ON DELETE CASCADE,
                 UNIQUE KEY unique_school_admission (school_id, admission_number)

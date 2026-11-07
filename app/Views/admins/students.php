@@ -1,58 +1,11 @@
 <?php
+
+use PhpOffice\PhpSpreadsheet\Shared\Date;
+
 $students = $students ?? [];
 $student = $student ?? [];
 $isEditing = !empty($student['id']);
 ?>
-
-<section>
-    <div class="table-container">
-        <table>
-            <thead>
-                <tr>
-                    <th>#</th>
-                    <th>Profile</th>
-                    <th>Full Name</th>
-                    <th>Username</th>
-                    <th>UPI</th>
-                    <th>Date Created</th>
-                    <th>Actions</th>
-                </tr>
-            </thead>
-            <tbody>
-                <?php if ($students === []): ?>
-                    <tr>
-                        <td colspan="7">No students found.</td>
-                    </tr>
-                <?php else: ?>
-                    <?php foreach ($students as $key => $listedStudent): ?>
-                        <tr>
-                            <td><?= $key + 1 ?></td>
-                            <td>
-                                <?php if (!empty($listedStudent['profile_photo'])): ?>
-                                    <img src="/<?= htmlspecialchars($listedStudent['profile_photo'], ENT_QUOTES, 'UTF-8') ?>" alt="<?= htmlspecialchars($listedStudent['name'] ?? 'Student', ENT_QUOTES, 'UTF-8') ?> profile photo" width="48">
-                                <?php else: ?>
-                                    &mdash;
-                                <?php endif; ?>
-                            </td>
-                            <td><?= htmlspecialchars($listedStudent['name'] ?? '', ENT_QUOTES, 'UTF-8') ?></td>
-                            <td><?= htmlspecialchars($listedStudent['username'] ?? '', ENT_QUOTES, 'UTF-8') ?></td>
-                            <td><?= htmlspecialchars($listedStudent['upi'] ?? '', ENT_QUOTES, 'UTF-8') ?></td>
-                            <td><?= htmlspecialchars($listedStudent['created_at'] ?? '', ENT_QUOTES, 'UTF-8') ?></td>
-                            <td>
-                                <a class="btn-sm btn-edit" href="/admin/students/edit/<?= (int) $listedStudent['id'] ?>">Edit</a>
-                                <form id="delete-student-<?= (int) $listedStudent['id'] ?>" action="/admin/students/delete/<?= (int) $listedStudent['id'] ?>" method="post" onsubmit="return confirm('Delete this student?');" hidden>
-                                    <input type="hidden" name="token" value="<?= htmlspecialchars($token ?? '', ENT_QUOTES, 'UTF-8') ?>">
-                                    <input type="hidden" name="_method" value="DELETE">
-                                </form>
-                                <button class="btn-sm btn-delete" type="submit" form="delete-student-<?= (int) $listedStudent['id'] ?>">Delete</button>
-                            </td>
-                        </tr>
-                    <?php endforeach; ?>
-                <?php endif; ?>
-            </tbody>
-        </table>
-    </div>
-</section>
 
 <section>
     <h4><?= $isEditing ? 'Edit Student' : 'Add Student' ?></h4>
@@ -74,11 +27,12 @@ $isEditing = !empty($student['id']);
             <input type="text" id="student-upi" name="upi" value="<?= htmlspecialchars($student['upi'] ?? '', ENT_QUOTES, 'UTF-8') ?>" required>
         </div>
         <div class="form-group">
-            <label for="student-status">Status</label>
-            <select id="student-status" name="status">
-                <option value="Active" <?= ($student['status'] ?? 'Active') === 'Active' ? 'selected' : '' ?>>Active</option>
-                <option value="Inactive" <?= ($student['status'] ?? '') === 'Inactive' ? 'selected' : '' ?>>Inactive</option>
-            </select>
+            <label for="student-dob">Date of Birth</label>
+            <input type="text" name="dob" id="student-dob" value="<?= htmlspecialchars($student['dob'] ?? '') ?>" required>
+        </div>
+        <div class="form-group">
+            <label for="student-doa">Date of Admission</label>
+            <input type="text" name="doa" id="student-doa" value="<?= htmlspecialchars($student['doa'] ?? '') ?>" required>
         </div>
         <div class="form-group">
             <label for="student-profile">Profile photo (optional)</label>
@@ -94,6 +48,61 @@ $isEditing = !empty($student['id']);
     </form>
 </section>
 
+<section>
+    <div class="table-container">
+        <table>
+            <thead>
+                <tr>
+                    <th>#</th>
+                    <th>Profile</th>
+                    <th>Full Name</th>
+                    <th>Username</th>
+                    <th>UPI</th>
+                    <th>Age</th>
+                    <th>Date of Admission</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                <?php if ($students === []): ?>
+                    <tr>
+                        <td colspan="7">No students found.</td>
+                    </tr>
+                <?php else: ?>
+                    <?php foreach ($students as $key => $listedStudent): ?>
+                        <tr>
+                            <td><?= $key + 1 ?></td>
+                            <td>
+                                <?php if (!empty($listedStudent['profile_photo'])): ?>
+                                    <img src="/<?= htmlspecialchars($listedStudent['profile_photo'], ENT_QUOTES, 'UTF-8') ?>" alt="<?= htmlspecialchars($listedStudent['name'] ?? 'Student', ENT_QUOTES, 'UTF-8') ?> profile photo" width="48">
+                                <?php else: ?>
+                                    <img src="/storage/profiles/avatarstudent.png" alt="Profile" width="48">
+                                <?php endif; ?>
+                            </td>
+                            <td><?= htmlspecialchars($listedStudent['name'] ?? '', ENT_QUOTES, 'UTF-8') ?></td>
+                            <td><?= htmlspecialchars($listedStudent['username'] ?? '', ENT_QUOTES, 'UTF-8') ?></td>
+                            <td><?= htmlspecialchars($listedStudent['upi'] ?? '', ENT_QUOTES, 'UTF-8') ?></td>
+                            <td>
+                                <?= htmlspecialchars(Date('Y') - $listedStudent['dob']) ?>
+                            </td>
+                            <td><?= htmlspecialchars($listedStudent['doa'] ?? '', ENT_QUOTES, 'UTF-8') ?></td>
+                            <td>
+                                <a class="btn-sm btn-edit" href="/admin/students/edit/<?= (int) $listedStudent['id'] ?>">Edit</a>
+                                <form id="delete-student-<?= (int) $listedStudent['id'] ?>" action="/admin/students/delete/<?= (int) $listedStudent['id'] ?>" method="post" onsubmit="return confirm('Delete this student?');" hidden>
+                                    <input type="hidden" name="token" value="<?= htmlspecialchars($token ?? '', ENT_QUOTES, 'UTF-8') ?>">
+                                    <input type="hidden" name="_method" value="DELETE">
+                                </form>
+                                <button class="btn-sm btn-delete" type="submit" form="delete-student-<?= (int) $listedStudent['id'] ?>">Delete</button>
+                            </td>
+                        </tr>
+                    <?php endforeach; ?>
+                <?php endif; ?>
+            </tbody>
+        </table>
+    </div>
+</section>
+
+
 <div class="modal fade" id="importModal" tabindex="-1" aria-labelledby="importModalLabel" aria-hidden="true">
     <div class="modal-dialog">
         <form action="/admin/students/import" method="POST" enctype="multipart/form-data" class="modal-content">
@@ -108,7 +117,7 @@ $isEditing = !empty($student['id']);
                 <div class="form-group">
                     <label for="spreadsheet">Select Excel or CSV File</label>
                     <input type="file" id="spreadsheet" name="spreadsheet" accept=".xlsx, .xls, .csv" required>
-                    <p class="help-text">Required Columns: Full Name (A), Admission Number (B), UPI (C). Row 1 headers.</p>
+                    <p class="help-text">Required Columns: Full Name (A), Admission Number (B), UPI (C), Date of Birth (D), Date of Admission (E) Row 1 headers.</p>
                 </div>
             </div>
 

@@ -6,6 +6,7 @@ use App\Core\Controller;
 use App\Models\Schools;
 use App\Models\Users;
 use PhpOffice\PhpSpreadsheet\IOFactory;
+use PhpOffice\PhpSpreadsheet\Shared\Date as SpreadsheetDate;
 use Throwable;
 
 class StudentsController extends Controller
@@ -78,11 +79,45 @@ class StudentsController extends Controller
         $fullName = $this->textFormat(trim($_POST['name'] ?? ''), 'title');
         $admNo = $this->textFormat(trim($_POST['adm'] ?? ''), 'upper');
         $upi = $this->textFormat(trim($_POST['upi'] ?? ''), 'upper');
-        $status = $_POST['status'] ?? 'Active';
         $profile = $_FILES['profile'] ?? null;
+
+        $normalizeDate = static function (mixed $value): ?string {
+            if (!is_string($value) || ($value = trim($value)) === '') {
+                return null;
+            }
+
+            foreach (['!Y-m-d', '!Y/m/d', '!d/m/Y', '!d-m-Y'] as $format) {
+                $date = \DateTimeImmutable::createFromFormat($format, $value);
+                $errors = \DateTimeImmutable::getLastErrors();
+                $inputFormat = substr($format, 1);
+
+                if (
+                    $date !== false
+                    && ($errors === false || ($errors['warning_count'] === 0 && $errors['error_count'] === 0))
+                    && $date->format($inputFormat) === $value
+                ) {
+                    return $date->format('Y-m-d');
+                }
+            }
+
+            return null;
+        };
+
+        $dob = $normalizeDate($_POST['dob'] ?? null);
+        $doa = $normalizeDate($_POST['doa'] ?? null);
 
         if ($fullName === '' || $admNo === '' || $upi === '') {
             $this->flash('error', 'All fields are required.');
+            $this->redirect($this->basePath);
+        }
+
+        if ($dob === null || $doa === null) {
+            $this->flash('error', 'Enter valid dates of birth and admission.');
+            $this->redirect($this->basePath);
+        }
+
+        if ($doa < $dob) {
+            $this->flash('error', 'Date of admission cannot be before date of birth.');
             $this->redirect($this->basePath);
         }
 
@@ -102,7 +137,8 @@ class StudentsController extends Controller
             'role' => 'Student',
             'upi' => $upi,
             'admission_number' => $admNo,
-            'status' => $status
+            'dob' => $dob,
+            'doa' => $doa,
         ];
 
         // Only assign default password hash on creation
@@ -201,7 +237,43 @@ class StudentsController extends Controller
         try {
             // FIXED: Typo corrected from $speadsheet to $spreadsheet
             $spreadsheet = IOFactory::load($file['tmp_name']);
-            $sheetData = $spreadsheet->getActiveSheet()->toArray(null, true, true, true);
+            $sheet = $spreadsheet->getActiveSheet();
+            $sheetData = $sheet->toArray(null, true, true, true);
+            $normalizeDate = static function (mixed $value): ?string {
+                if (!is_string($value) || ($value = trim($value)) === '') {
+                    return null;
+                }
+
+                foreach (['!Y-m-d', '!Y/m/d', '!d/m/Y', '!d-m-Y'] as $format) {
+                    $date = \DateTimeImmutable::createFromFormat($format, $value);
+                    $errors = \DateTimeImmutable::getLastErrors();
+                    $inputFormat = substr($format, 1);
+
+                    if (
+                        $date !== false
+                        && ($errors === false || ($errors['warning_count'] === 0 && $errors['error_count'] === 0))
+                        && $date->format($inputFormat) === $value
+                    ) {
+                        return $date->format('Y-m-d');
+                    }
+                }
+
+                return null;
+            };
+            $normalizeSpreadsheetDate = static function (string $coordinate) use ($sheet, $normalizeDate): ?string {
+                $cell = $sheet->getCell($coordinate);
+                $value = $cell->getValue();
+
+                if (SpreadsheetDate::isDateTime($cell) && is_numeric($value)) {
+                    try {
+                        return SpreadsheetDate::excelToDateTimeObject((float) $value)->format('Y-m-d');
+                    } catch (\Exception) {
+                        return null;
+                    }
+                }
+
+                return $normalizeDate($value);
+            };
 
             $school = $this->school->find($this->schoolId());
             $schoolUsername = $school['username'] ?? '';
@@ -223,7 +295,8 @@ class StudentsController extends Controller
                 $fullName = trim($row['A'] ?? '');
                 $admNo = trim($row['B'] ?? '');
                 $upi = trim($row['C'] ?? '');
-                $status = !empty(trim($row['D'] ?? '')) ? trim($row['D']) : 'Active';
+                $dob = $normalizeSpreadsheetDate('D' . $index);
+                $doa = $normalizeSpreadsheetDate('E' . $index);
 
                 if ($fullName === '' && $admNo === '' && $upi === '') {
                     continue;
@@ -231,7 +304,7 @@ class StudentsController extends Controller
 
                 $rowCount++;
 
-                if ($fullName === '' || $admNo === '' || $upi === '') {
+                if ($fullName === '' || $admNo === '' || $upi === '' || $dob === null || $doa === null || $doa < $dob) {
                     $errorCount++;
                     continue;
                 }
@@ -249,7 +322,8 @@ class StudentsController extends Controller
                     'role' => 'Student',
                     'upi' => $formattedUpi,
                     'admission_number' => $formattedAdm,
-                    'status' => $status
+                    'dob' => $dob,
+                    'doa' => $doa
                 ];
 
                 try {
