@@ -17,7 +17,7 @@
             <?php if (isset($user)): ?>
                 <form action="/logout" method="post">
                     <input type="hidden" name="token" value="<?= htmlspecialchars($csrfToken ?? '', ENT_QUOTES, 'UTF-8') ?>">
-                    <button type="submit">Logout</button>
+                    <button class="logout-button" type="submit">Logout</button>
                 </form>
             <?php else: ?>
                 <a href="/login">Login</a>

@@ -86,7 +86,7 @@ class Migration
                 UNIQUE(year_id,term)
             )ENGINE=InnoDB DEFAULT CHARSET=utf8mb4",
 
-            "CREATE TABLE IF NOT EXISTS student_classes(
+            "CREATE TABLE IF NOT EXISTS enrollments(
                 id INT AUTO_INCREMENT PRIMARY KEY,
                 school_id INT NOT NULL,
                 student_id INT NOT NULL,

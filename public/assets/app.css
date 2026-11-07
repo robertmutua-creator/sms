@@ -64,6 +64,30 @@ header .action a:hover {
     background: var(--primary-hover);
 }
 
+header .action form {
+    margin: 0;
+    padding: 0;
+    border: 0;
+    background: transparent;
+}
+
+header .action .logout-button {
+    display: inline-block;
+    background: var(--primary);
+    color: #fff;
+    padding: 6px 14px;
+    border: 0;
+    border-radius: var(--radius);
+    font: inherit;
+    font-size: 0.9rem;
+    font-weight: 500;
+    cursor: pointer;
+}
+
+header .action .logout-button:hover {
+    background: var(--primary-hover);
+}
+
 /* Main Layout Grid */
 main {
     flex: 1;
