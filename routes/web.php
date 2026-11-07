@@ -3,6 +3,7 @@
 use App\Controllers\DashboardController;
 use App\Controllers\HomeController;
 use App\Controllers\Admin\ClassesController;
+use App\Controllers\Admin\EnrollmentsController;
 use App\Controllers\Admin\StudentsController;
 use App\Controllers\Admin\SubjectsController;
 use App\Controllers\Admin\TeachersController;
@@ -42,6 +43,10 @@ Router::post('/admin/classes/save', [ClassesController::class, 'save']);
 Router::put('/admin/classes/update/{id}', [ClassesController::class, 'save']);
 Router::patch('/admin/classes/update/{id}', [ClassesController::class, 'save']);
 Router::delete('/admin/classes/delete/{id}', [ClassesController::class, 'destroy']);
+
+Router::get('/admin/enrollments', [EnrollmentsController::class, 'index']);
+Router::post('/admin/enrollments/store', [EnrollmentsController::class, 'store']);
+Router::post('/admin/enrollments/remove', [EnrollmentsController::class, 'remove']);
 
 Router::get('/admin/subjects', [SubjectsController::class, 'index']);
 Router::get('/admin/subjects/edit/{id}', [SubjectsController::class, 'index']);
