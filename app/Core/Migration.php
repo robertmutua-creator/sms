@@ -69,8 +69,21 @@ class Migration
                 school_id INT NOT NULL,
                 year INT NOT NULL,
                 status ENUM('active','inactive'),
+                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
                 FOREIGN KEY (school_id) REFERENCES schools(id) ON DELETE CASCADE ON UPDATE CASCADE,
                 UNIQUE (school_id, year)
+            )ENGINE=InnoDB DEFAULT CHARSET=utf8mb4",
+
+            "CREATE TABLE IF NOT EXISTS terms(
+                id INT AUTO_INCREMENT PRIMARY KEY,
+                school_id INT NOT NULL,
+                year_id INT NOT NULL,
+                term enum('1','2','3') NOT NULL,
+                status enum('current','completed','upcoming'),
+                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                FOREIGN KEY (year_id) REFERENCES years(id) ON DELETE CASCADE ON UPDATE CASCADE,
+                FOREIGN KEY (school_id) REFERENCES schools(id) ON DELETE CASCADE ON UPDATE CASCADE,
+                UNIQUE(year_id,term)
             )ENGINE=InnoDB DEFAULT CHARSET=utf8mb4",
         ];
 

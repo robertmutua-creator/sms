@@ -20,10 +20,10 @@
     </article>
 
     <article class="card">
-        <h4>Current Academic Year</h4>
+        <h4>Current Term / Year</h4>
         <p class="stat">
-            <?= htmlspecialchars($currentAcademicYear === null ? 'Not set' : (string) $currentAcademicYear, ENT_QUOTES, 'UTF-8') ?>
+            <?= htmlspecialchars($currentTermYear ?? 'Not set', ENT_QUOTES, 'UTF-8') ?>
         </p>
-        <a href="/admin/years">Manage Academic Years</a>
+        <a href="/admin/terms">Manage Terms</a>
     </article>
 </div>

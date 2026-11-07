@@ -6,6 +6,7 @@ use App\Core\Controller;
 use App\Models\Classes;
 use App\Models\Schools;
 use App\Models\Subjects;
+use App\Models\Terms;
 use App\Models\Users;
 use App\Models\Years;
 
@@ -35,8 +36,14 @@ class DashboardController extends Controller
                 $data['teachersCount'] = (new Users($this->schoolId()))->count(['role' => 'Teacher']);
                 $data['classesCount'] = (new Classes($this->schoolId()))->count();
                 $data['subjectsCount'] = (new Subjects($this->schoolId()))->count();
-                $currentYears = (new Years($this->schoolId()))->findAll(['status' => 'active']);
-                $data['currentAcademicYear'] = $currentYears[0]['year'] ?? null;
+                $currentTerms = (new Terms($this->schoolId()))->findAll(['status' => 'current']);
+                $currentTerm = $currentTerms[0] ?? null;
+                $currentYear = $currentTerm === null
+                    ? null
+                    : (new Years($this->schoolId()))->find((int) $currentTerm['year_id']);
+                $data['currentTermYear'] = $currentTerm !== null && $currentYear !== null
+                    ? 'Term ' . $currentTerm['term'] . ' / ' . $currentYear['year']
+                    : null;
                 $this->view('admins/index', $data);
                 break;
             case 'Teacher':
