@@ -8,8 +8,6 @@ $selectedYear = $selectedYear ?? null;
 ?>
 
 <section>
-    <h3>Class Enrollment Management</h3>
-
     <form method="get" action="/admin/enrollments">
         <div class="grid">
             <div class="form-group">
@@ -68,7 +66,9 @@ $selectedYear = $selectedYear ?? null;
                                     </tr>
                                 <?php endforeach; ?>
                             <?php else: ?>
-                                <tr><td colspan="4">No students are enrolled in this class for the selected year.</td></tr>
+                                <tr>
+                                    <td colspan="4">No students are enrolled in this class for the selected year.</td>
+                                </tr>
                             <?php endif; ?>
                         </tbody>
                     </table>
@@ -104,7 +104,9 @@ $selectedYear = $selectedYear ?? null;
                                     </tr>
                                 <?php endforeach; ?>
                             <?php else: ?>
-                                <tr><td colspan="3">No unassigned students for the selected year.</td></tr>
+                                <tr>
+                                    <td colspan="3">No unassigned students for the selected year.</td>
+                                </tr>
                             <?php endif; ?>
                         </tbody>
                     </table>
@@ -118,13 +120,13 @@ $selectedYear = $selectedYear ?? null;
 </section>
 
 <script>
-    document.getElementById('selectAllEnrolled')?.addEventListener('change', function () {
+    document.getElementById('selectAllEnrolled')?.addEventListener('change', function() {
         document.querySelectorAll('.enrolled-checkbox').forEach(checkbox => {
             checkbox.checked = this.checked;
         });
     });
 
-    document.getElementById('selectAllUnassigned')?.addEventListener('change', function () {
+    document.getElementById('selectAllUnassigned')?.addEventListener('change', function() {
         document.querySelectorAll('.unassigned-checkbox').forEach(checkbox => {
             checkbox.checked = this.checked;
         });
