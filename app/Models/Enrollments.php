@@ -42,4 +42,35 @@ class Enrollments extends Model
             return null;
         }
     }
+
+    public function promoteStudent(int $student, int $targetClass, int $targetYear,): bool
+    {
+        try {
+            $this->db->beginTransaction();
+            $updateStmt = $this->db->prepare(
+                "UPDATE {$this->table} SET status='completed' WHERE student_id=:student AND school_id=:school AND status='active'"
+            );
+            $updateStmt->execute([
+                ':student' => $student,
+                ':school' => $this->schoolId,
+            ]);
+
+            $insertStmt = $this->db->prepare("
+            INSERT INTO {$this->table}(school_id,student_id,class_id,year_id,status) VALUES(:school,:student,:class,:year,'active') ON DUPLICATE KEY UPDATE class_id=:update_class, status='active';
+            ");
+            $insertStmt->execute([
+                ':school' => $this->schoolId,
+                ':student' => $student,
+                ':class' => $targetClass,
+                ':update_class' => $targetClass,
+                ':year' => $targetYear
+            ]);
+
+            $this->db->commit();
+            return true;
+        } catch (PDOException $e) {
+            error_log("Method [promoteStudent] failed. " . $e->getMessage());
+            return false;
+        }
+    }
 }

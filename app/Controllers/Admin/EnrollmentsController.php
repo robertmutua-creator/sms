@@ -6,6 +6,7 @@ use App\Core\Controller;
 use App\Models\Classes;
 use App\Models\Enrollments;
 use App\Models\Years;
+use Exception;
 
 class EnrollmentsController extends Controller
 {
@@ -59,9 +60,11 @@ class EnrollmentsController extends Controller
         $yearId = filter_var($_POST['year_id'] ?? null, FILTER_VALIDATE_INT);
         $studentIds = $this->selectedStudentIds($_POST['student_ids'] ?? null);
 
-        if (!is_int($classId) || $classId < 1 || !is_int($yearId) || $yearId < 1 ||
+        if (
+            !is_int($classId) || $classId < 1 || !is_int($yearId) || $yearId < 1 ||
             $this->classes->find($classId) === null || $this->years->find($yearId) === null ||
-            $studentIds === null) {
+            $studentIds === null
+        ) {
             $this->flash('error', 'Invalid class, year, or student selection.');
             $this->redirect('/admin/enrollments');
         }
@@ -111,9 +114,11 @@ class EnrollmentsController extends Controller
         $yearId = filter_var($_POST['year_id'] ?? null, FILTER_VALIDATE_INT);
         $studentIds = $this->selectedStudentIds($_POST['student_ids'] ?? null);
 
-        if (!is_int($classId) || $classId < 1 || !is_int($yearId) || $yearId < 1 ||
+        if (
+            !is_int($classId) || $classId < 1 || !is_int($yearId) || $yearId < 1 ||
             $this->classes->find($classId) === null || $this->years->find($yearId) === null ||
-            $studentIds === null) {
+            $studentIds === null
+        ) {
             $this->flash('error', 'Invalid class, year, or student selection.');
             $this->redirect('/admin/enrollments');
         }
@@ -166,5 +171,72 @@ class EnrollmentsController extends Controller
         }
 
         return array_values(array_unique($studentIds));
+    }
+
+    public function promote(): void
+    {
+        $source_class_id = filter_input(INPUT_GET, 'source_class_id', FILTER_VALIDATE_INT);
+        $source_year_id = filter_input(INPUT_GET, 'source_year_id', FILTER_VALIDATE_INT);
+
+        $enrolledStudents = [];
+
+        if ($source_class_id && $source_year_id) {
+            $enrolledStudents = $this->enrollments->classStudents($source_class_id, $source_year_id);
+        }
+
+        $classes = $this->classes->findAll();
+        $years = $this->years->findAll();
+
+        $this->view('admins/promote-students', [
+            'classes' => $classes,
+            'years' => $years,
+            'selectedSourceClass' => $source_class_id,
+            'selectedSourceYear' => $source_year_id,
+            'enrolledStudents' => $enrolledStudents
+        ]);
+    }
+
+    public function storePromotion(): void
+    {
+        $source_class_id = filter_input(INPUT_POST, 'source_class_id', FILTER_VALIDATE_INT);
+        $source_year_id = filter_input(INPUT_POST, 'source_year_id', FILTER_VALIDATE_INT);
+        $target_class_id = filter_input(INPUT_POST, 'target_class_id', FILTER_VALIDATE_INT);
+        $target_year_id = filter_input(INPUT_POST, 'target_year_id', FILTER_VALIDATE_INT);
+        $student_ids = $_POST['student_ids'] ?? [];
+
+        if (!$target_class_id || !$target_year_id || empty($student_ids)) {
+            $this->flash('error', 'All fields are required.');
+            $this->redirect('/admin/promotion-students');
+        }
+
+        $successCount = 0;
+        $failCount = 0;
+
+        foreach ($student_ids as $student_id) {
+            $student_id = filter_var($student_id, FILTER_VALIDATE_INT);
+            if (!$student_id) {
+                continue;
+            }
+
+            try {
+                $promoted = $this->enrollments->promoteStudent($student_id, $target_class_id, $target_year_id);
+                if ($promoted) {
+                    $successCount++;
+                } else {
+                    $failCount++;
+                    error_log("Failed to promote student ID :{$student_id} to class ID {$target_class_id}");
+                }
+            } catch (Exception $e) {
+                $failCount++;
+                error_log("Exception during student promotion for {$student_id}:" . $e->getMessage());
+                continue;
+            }
+        }
+        if ($successCount > 0) {
+            $this->flash('success', "Successfully promoted {$successCount} students(s)." . ($failCount > 0 ? "({$failCount} failed)" : ""));
+        } else {
+            $this->flash('error', 'Promotion process failed for all selected students.');
+        }
+        $this->redirect('/admin/promote-students');
     }
 }

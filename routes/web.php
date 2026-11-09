@@ -47,6 +47,8 @@ Router::delete('/admin/classes/delete/{id}', [ClassesController::class, 'destroy
 Router::get('/admin/enrollments', [EnrollmentsController::class, 'index']);
 Router::post('/admin/enrollments/store', [EnrollmentsController::class, 'store']);
 Router::post('/admin/enrollments/remove', [EnrollmentsController::class, 'remove']);
+Router::get('/admin/promote-students', [EnrollmentsController::class, 'promote']);
+Router::post('/admin/promote-students/store', [EnrollmentsController::class, 'storePromotion']);
 
 Router::get('/admin/subjects', [SubjectsController::class, 'index']);
 Router::get('/admin/subjects/edit/{id}', [SubjectsController::class, 'index']);
